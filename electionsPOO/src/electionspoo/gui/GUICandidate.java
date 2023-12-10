@@ -5,8 +5,7 @@
 package electionspoo.gui;
 
 import electionspoo.beans.candidate.CandidateBean;
-import electionspoo.beans.candidate.CandidateList;
-import electionspoo.beans.elector.ElectorList;
+import electionspoo.beans.candidate.Candidates;
 import electionspoo.utils.Constants;
 import electionspoo.utils.MainUtils;
 import electionspoo.utils.enums.Errors;
@@ -28,14 +27,15 @@ import javax.swing.JOptionPane;
 public class GUICandidate extends javax.swing.JDialog {
 
     private int GUIListSelectedIndex = 0;
+    Candidates candidates;
     
     //lista todos os electors guardados no ficheiro
     private void updateGUIList() {
         int tempSelectedIndex = GUIListSelectedIndex;
         MainUtils.listaGUICandidate.removeAllElements();
-        for (int i = 0; i < CandidateList.getList().size(); i++) {
-            if(!CandidateList.getList().get(i).getName().equals(Constants.blankCandidateName))
-                MainUtils.listaGUICandidate.addElement(CandidateList.getGUIListLine(CandidateList.getList().get(i)));
+        for (int i = 0; i < candidates.size(); i++) {
+            if(!candidates.getList().get(i).getName().equals(Constants.blankCandidateName))
+                MainUtils.listaGUICandidate.addElement(candidates.getGUIListLine(candidates.getList().get(i)));
         }
         GUICandList.setSelectedIndex(tempSelectedIndex);
     }
@@ -47,9 +47,11 @@ public class GUICandidate extends javax.swing.JDialog {
      * @param modal
      * @throws java.lang.Exception
      */
-    public GUICandidate(java.awt.Frame parent, boolean modal) throws Exception {
+    public GUICandidate(java.awt.Frame parent, boolean modal, Candidates candidates) throws Exception {
         super(parent, modal);
         initComponents();
+        this.candidates = candidates;
+        
         GUICandList.setModel(MainUtils.listaGUICandidate);  
         updateGUIList();
         GUICandList.setSelectedIndex(GUIListSelectedIndex);
@@ -249,11 +251,6 @@ public class GUICandidate extends javax.swing.JDialog {
 
         GUICandTxtBoxName.setText("Partido A");
         GUICandTxtBoxName.setBorder(javax.swing.BorderFactory.createTitledBorder("Nome"));
-        GUICandTxtBoxName.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                GUICandTxtBoxNameActionPerformed(evt);
-            }
-        });
         GUICandTxtBoxName.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
                 GUICandTxtBoxNameKeyReleased(evt);
@@ -351,8 +348,9 @@ public class GUICandidate extends javax.swing.JDialog {
                         .addGap(18, 18, 18)
                         .addGroup(GUICandPanelElectorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, 175, Short.MAX_VALUE)
-                            .addComponent(GUICandPanelImage, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(GUICandBtnDeleteCand, javax.swing.GroupLayout.DEFAULT_SIZE, 175, Short.MAX_VALUE))
+                            .addGroup(GUICandPanelElectorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addComponent(GUICandPanelImage, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(GUICandBtnDeleteCand, javax.swing.GroupLayout.DEFAULT_SIZE, 175, Short.MAX_VALUE)))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -445,9 +443,9 @@ public class GUICandidate extends javax.swing.JDialog {
     private void GUICandBtnNewCandActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_GUICandBtnNewCandActionPerformed
         // TODO add your handling code here:
         //CandidateBean candidateBean = new CandidateBean(GUICandTxtBoxName.getText(), GUICandTxtBoxInitials.getText());
-        CandidateList.getList().add(new CandidateBean());
+        candidates.getList().add(new CandidateBean());
         updateGUIList();
-        GUICandList.setSelectedIndex(CandidateList.getList().size() - 1);
+        GUICandList.setSelectedIndex(candidates.size() - 1);
     }//GEN-LAST:event_GUICandBtnNewCandActionPerformed
 
     private void GUICandTxtBoxInitialsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_GUICandTxtBoxInitialsActionPerformed
@@ -461,7 +459,7 @@ public class GUICandidate extends javax.swing.JDialog {
         
         if(deleteUserConfirmation){
             try {
-                CandidateList.deleteCandidateFromList(GUIListSelectedIndex);
+                candidates.deleteCandidateFromList(GUIListSelectedIndex);
                 updateGUIList();
                 GUICandList.setSelectedIndex(0);
             } catch (IOException ex) {
@@ -482,15 +480,15 @@ public class GUICandidate extends javax.swing.JDialog {
         int selections[] = GUICandList.getSelectedIndices();
         GUIListSelectedIndex = GUICandList.getSelectedIndex();
         for (int i = 0, n = selections.length; i < n; i++) {
-            GUICandTxtBoxName.setText(CandidateList.getList().get(selections[i]).getName());
-            GUICandTxtBoxInitials.setText(CandidateList.getList().get(selections[i]).getInitials());
-            GUICandLabel2Image.setIcon(MainUtils.resizeIcon(CandidateList.getList().get(selections[i]).getPhoto(), GUICandLabel2Image.getWidth(), GUICandLabel2Image.getHeight()));
+            GUICandTxtBoxName.setText(candidates.getList().get(selections[i]).getName());
+            GUICandTxtBoxInitials.setText(candidates.getList().get(selections[i]).getInitials());
+            GUICandLabel2Image.setIcon(MainUtils.resizeIcon(candidates.getList().get(selections[i]).getPhoto(), GUICandLabel2Image.getWidth(), GUICandLabel2Image.getHeight()));
         }
     }//GEN-LAST:event_GUICandListValueChanged
 
     private void GUIElectorBtnLastActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_GUIElectorBtnLastActionPerformed
         // TODO add your handling code here:
-        if (GUIListSelectedIndex < CandidateList.getList().size() - 1) {
+        if (GUIListSelectedIndex < candidates.size() - 1) {
             GUIListSelectedIndex++;
             GUICandList.setSelectedIndex(GUIListSelectedIndex);
         }
@@ -512,19 +510,18 @@ public class GUICandidate extends javax.swing.JDialog {
 
     private void GUIElectorBtnNextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_GUIElectorBtnNextActionPerformed
         // TODO add your handling code here:
-        GUICandList.setSelectedIndex(CandidateList.getList().size() - 1);
+        GUICandList.setSelectedIndex(candidates.size() - 1);
     }//GEN-LAST:event_GUIElectorBtnNextActionPerformed
 
     private void GUICandBtnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_GUICandBtnSaveActionPerformed
         // TODO add your handling code here:
         try {
             JFileChooser fileChooser = new JFileChooser();
-            CandidateList candidateList = new CandidateList();
             fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
             int result = fileChooser.showOpenDialog(fileChooser);
             if (result == JFileChooser.APPROVE_OPTION) {
                 String selectedFile = fileChooser.getSelectedFile().getAbsolutePath();
-                candidateList.save(selectedFile);
+                candidates.save(selectedFile);
             }
         } catch (IOException | ClassNotFoundException | ParseException ex) {
             Logger.getLogger(GUIElector.class.getName()).log(Level.SEVERE, null, ex);
@@ -537,7 +534,7 @@ public class GUICandidate extends javax.swing.JDialog {
 
     private void GUICandBtnNewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_GUICandBtnNewActionPerformed
         // TODO add your handling code here:
-        CandidateList.getList().clear();
+        candidates.clear();
         updateGUIList();
     }//GEN-LAST:event_GUICandBtnNewActionPerformed
 
@@ -549,11 +546,11 @@ public class GUICandidate extends javax.swing.JDialog {
             if(textToSearch.toCharArray().length<Constants.maxSizeForTextBox){
                 int index;
 
-                index = CandidateList.searchCandidateByName(textToSearch);
+                index = candidates.searchCandidateByName(textToSearch);
                 if (!(MainUtils.isNullOrEmpty(String.valueOf(index)))) {
                     GUICandList.setSelectedIndex(index);
                 } else {
-                    index = CandidateList.searchCandidateByInitials(textToSearch);
+                    index = candidates.searchCandidateByInitials(textToSearch);
                     if (!(MainUtils.isNullOrEmpty(String.valueOf(index)))) {
                         GUICandList.setSelectedIndex(index);
                     } else {
@@ -573,12 +570,11 @@ public class GUICandidate extends javax.swing.JDialog {
         // TODO add your handling code here:
         try {
             JFileChooser fileChooser = new JFileChooser();
-            CandidateList candidateList = new CandidateList();
             fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
             int result = fileChooser.showOpenDialog(fileChooser);
             if (result == JFileChooser.APPROVE_OPTION) {
                 String selectedFile = fileChooser.getSelectedFile().getAbsolutePath();
-                candidateList.load(selectedFile);
+                candidates.load(selectedFile);
                 updateGUIList();
             }
         } catch (IOException ex) {
@@ -607,7 +603,7 @@ public class GUICandidate extends javax.swing.JDialog {
 
     private void GUICandBtnDownActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_GUICandBtnDownActionPerformed
         // TODO add your handling code here:
-        if (GUIListSelectedIndex < CandidateList.getList().size() - 1) {
+        if (GUIListSelectedIndex < candidates.size() - 1) {
             GUIListSelectedIndex++;
             GUICandList.setSelectedIndex(GUIListSelectedIndex);
         }
@@ -617,12 +613,10 @@ public class GUICandidate extends javax.swing.JDialog {
         // TODO add your handling code here:
         
         try{
-            if(GUICandTxtBoxName.getText().length()<Constants.maxSizeForTextBox){
-                if(null!=CandidateList.getList().get(GUIListSelectedIndex).getName()){
-                    if(!GUICandTxtBoxName.getText().equals(CandidateList.getList().get(GUIListSelectedIndex).getName())){
-                        CandidateList.getList().get(GUIListSelectedIndex).setName(GUICandTxtBoxName.getText());
-                        updateGUIList();
-                    }
+            if(GUICandTxtBoxName.getText().toCharArray().length<Constants.maxSizeForTextBox){
+                if(!GUICandTxtBoxName.getText().equals(candidates.getList().get(GUIListSelectedIndex).getName())){
+                    candidates.getList().get(GUIListSelectedIndex).setName(GUICandTxtBoxName.getText());
+                    updateGUIList();
                 }
             }else{
                 throw new Exception();
@@ -637,8 +631,8 @@ public class GUICandidate extends javax.swing.JDialog {
         // TODO add your handling code here:
         try{  
             if(GUICandTxtBoxInitials.getText().toCharArray().length<Constants.maxSizeForSigla){
-                if(!GUICandTxtBoxInitials.getText().equals(CandidateList.getList().get(GUIListSelectedIndex).getInitials())){
-                    CandidateList.getList().get(GUIListSelectedIndex).setInitials(GUICandTxtBoxInitials.getText());
+                if(!GUICandTxtBoxInitials.getText().equals(candidates.getList().get(GUIListSelectedIndex).getInitials())){
+                    candidates.getList().get(GUIListSelectedIndex).setInitials(GUICandTxtBoxInitials.getText());
                     updateGUIList();
                 }
             }else{
@@ -658,21 +652,17 @@ public class GUICandidate extends javax.swing.JDialog {
             try {
                 Image img = ImageIO.read(fc.getSelectedFile());
                 GUICandLabel2Image.setIcon(MainUtils.resizeIcon(new ImageIcon(img), GUICandLabel2Image.getWidth(), GUICandLabel2Image.getHeight()));
-                CandidateList.getList().get(GUIListSelectedIndex).setPhoto(new ImageIcon(img));
+                candidates.getList().get(GUIListSelectedIndex).setPhoto(new ImageIcon(img));
             } catch (IOException ex) {
                 Logger.getLogger(GUIElector.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 
-    private void GUICandTxtBoxNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_GUICandTxtBoxNameActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_GUICandTxtBoxNameActionPerformed
-
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -697,7 +687,7 @@ public class GUICandidate extends javax.swing.JDialog {
         /* Create and display the dialog */
         java.awt.EventQueue.invokeLater(() -> {
             try {
-                GUICandidate dialog = new GUICandidate(new javax.swing.JFrame(), true);
+                GUICandidate dialog = new GUICandidate(new javax.swing.JFrame(), true, candidates);
                 dialog.addWindowListener(new java.awt.event.WindowAdapter() {
                     @Override
                     public void windowClosing(java.awt.event.WindowEvent e) {

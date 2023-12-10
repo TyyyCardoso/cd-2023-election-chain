@@ -4,21 +4,33 @@
  */
 package electionspoo.gui;
 
-import electionspoo.beans.candidate.CandidateList;
+import client.Vote;
+import distributedMiner.RemoteInterface;
+import distributedMiner.RemoteObject;
+import distributedMiner.blockchain.Block;
+import electionspoo.beans.candidate.CandidateBean;
+import electionspoo.beans.candidate.Candidates;
 import electionspoo.beans.election.ElectionManager;
-import electionspoo.beans.elector.ElectorList;
+import electionspoo.beans.elector.Electors;
 import electionspoo.utils.Constants;
 import electionspoo.utils.MainUtils;
 import electionspoo.utils.enums.Errors;
+import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import utils.GuiUtils;
+import utils.RMI;
+import utils.Serializer;
 
 /**
  *
@@ -26,17 +38,19 @@ import javax.swing.JOptionPane;
  */
 public class GUIConfig extends javax.swing.JFrame {
 
-    //deve ser apagado na fase final do projeto (tem de ser declarado no 
-
+    RemoteInterface remote;
+    Candidates candidates;
+    Electors electors;
+    
     private void updateGUILists() {
         MainUtils.listaGUIElector.removeAllElements();
         MainUtils.listaGUICandidate.removeAllElements();
-        for (int i = 0; i < ElectorList.getList().size(); i++) {
-            MainUtils.listaGUIElector.addElement(ElectorList.getGUIListLine(ElectionManager.getElection().getElectorList().get(i)));
+        for (int i = 0; i < electors.size(); i++) {
+            MainUtils.listaGUIElector.addElement(electors.getGUIListLine(electors.getList().get(i)));
         }
-        for (int i = 0; i < CandidateList.getList().size(); i++) {
-            if(!ElectionManager.getElection().getCandidateList().get(i).getName().equals(Constants.blankCandidateName))
-                MainUtils.listaGUICandidate.addElement(CandidateList.getGUIListLine(ElectionManager.getElection().getCandidateList().get(i)));       
+        for (int i = 0; i < candidates.size(); i++) {
+            if(!candidates.getList().get(i).getName().equals(Constants.blankCandidateName))
+                MainUtils.listaGUICandidate.addElement(candidates.getGUIListLine(candidates.getList().get(i)));       
         }
     }
     
@@ -50,14 +64,20 @@ public class GUIConfig extends javax.swing.JFrame {
      * Creates new form GUIConfig
      * @throws java.lang.Exception
      */
-    public GUIConfig() throws Exception {
+    public GUIConfig(Candidates candidates, Electors electors, RemoteInterface remote) throws Exception {
         initComponents();
+        this.candidates = candidates;
+        this.electors = electors;
+        this.remote = remote;
+        
         GUIConfigJListElector.setModel(MainUtils.listaGUIElector);
         GUIConfigJListCandidate.setModel(MainUtils.listaGUICandidate);
+        
         if(ElectionManager.getElection()!=null){
            updateTextBoxes();
+           updateGUILists();
         }
-       updateGUILists();
+      
     }
 
     /**
@@ -82,6 +102,7 @@ public class GUIConfig extends javax.swing.JFrame {
         GUIConfigBtnStartElection = new javax.swing.JButton();
         GUIConfigPanelPhoto = new javax.swing.JPanel();
         jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
         GUIConfigPanelCandidates = new javax.swing.JPanel();
         GUIConfigBtnOpenCandidateFile = new javax.swing.JButton();
         GUIConfigBtnOpenCandidateMenu = new javax.swing.JButton();
@@ -229,6 +250,13 @@ public class GUIConfig extends javax.swing.JFrame {
             }
         });
 
+        jButton2.setText("Finalizar Eleição");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout GUIConfigPanelElectionLayout = new javax.swing.GroupLayout(GUIConfigPanelElection);
         GUIConfigPanelElection.setLayout(GUIConfigPanelElectionLayout);
         GUIConfigPanelElectionLayout.setHorizontalGroup(
@@ -245,7 +273,8 @@ public class GUIConfig extends javax.swing.JFrame {
                                 .addGap(25, 25, 25)
                                 .addGroup(GUIConfigPanelElectionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                     .addComponent(GUIConfigBtnStartElection, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                         .addGap(18, 18, 18)
                         .addComponent(GUIConfigPanelPhoto, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap())
@@ -267,7 +296,9 @@ public class GUIConfig extends javax.swing.JFrame {
                         .addGap(51, 51, 51)
                         .addComponent(GUIConfigBtnStartElection)
                         .addGap(18, 18, 18)
-                        .addComponent(jButton1)))
+                        .addComponent(jButton1)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton2)))
                 .addContainerGap(136, Short.MAX_VALUE))
         );
 
@@ -460,7 +491,7 @@ public class GUIConfig extends javax.swing.JFrame {
     private void GUIConfigBtnOpenCandidateMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_GUIConfigBtnOpenCandidateMenuActionPerformed
         // TODO add your handling code here:
         try {
-            GUICandidate dialog = new GUICandidate(this, true);
+            GUICandidate dialog = new GUICandidate(this, true, candidates);
             dialog.setVisible(true);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(Exception, Errors.OpeningNewPanelError.getErro(), Constants.exceptionDialogPopUpTitle, JOptionPane.OK_OPTION);
@@ -471,7 +502,7 @@ public class GUIConfig extends javax.swing.JFrame {
     private void GUIConfigBtnOpenjElectorMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_GUIConfigBtnOpenjElectorMenuActionPerformed
         // TODO add your handling code here:
         try {
-            GUIElector dialog = new GUIElector(this, true);
+            GUIElector dialog = new GUIElector(this, true, electors);
             dialog.setVisible(true);
         } catch (Exception ex) {
              JOptionPane.showMessageDialog(Exception, Errors.OpeningNewPanelError.getErro(), Constants.exceptionDialogPopUpTitle, JOptionPane.OK_OPTION);
@@ -482,12 +513,11 @@ public class GUIConfig extends javax.swing.JFrame {
     private void GUIConfigBtnOpenCandidateFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_GUIConfigBtnOpenCandidateFileActionPerformed
         try {
             JFileChooser fileChooser = new JFileChooser();
-            CandidateList candidateList = new CandidateList();
             fileChooser.setCurrentDirectory(new File(System.getProperty(Constants.userSystemDir)));
             int result = fileChooser.showOpenDialog(fileChooser);
             if (result == JFileChooser.APPROVE_OPTION) {
                 String selectedFile = fileChooser.getSelectedFile().getAbsolutePath();
-                candidateList.load(selectedFile);
+                candidates.load(selectedFile);
                 updateGUILists();
             }
         } catch (IOException ex) {
@@ -505,11 +535,10 @@ public class GUIConfig extends javax.swing.JFrame {
     private void GUIConfigBtnOpenElectorFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_GUIConfigBtnOpenElectorFileActionPerformed
        try{
             JFileChooser fileChooser = new JFileChooser();
-            CandidateList candidateList = new CandidateList();
             fileChooser.setCurrentDirectory(new File(System.getProperty(Constants.userSystemDir)));
             int result = fileChooser.showOpenDialog(fileChooser);
             if (result == JFileChooser.APPROVE_OPTION) {
-                    candidateList.load(fileChooser.getSelectedFile().getAbsolutePath());
+                    candidates.load(fileChooser.getSelectedFile().getAbsolutePath());
                     updateGUILists();
             }
        }catch(IOException e){
@@ -526,7 +555,7 @@ public class GUIConfig extends javax.swing.JFrame {
         
         try{
             
-            if(CandidateList.getList().size()>0 && ElectorList.getList().size()>0){
+            if(candidates.size()>0 && electors.size()>0){
                 
                 LocalDate initDate = LocalDate.parse(GUIConfigTxtBoxElectionStartDate.getText(), MainUtils.formatter);
                 LocalDate endDate = LocalDate.parse(GUIConfigTxtBoxElectionEndDate.getText(), MainUtils.formatter);
@@ -541,7 +570,7 @@ public class GUIConfig extends javax.swing.JFrame {
                 }
                 ElectionManager electionManager = new ElectionManager();
 
-                ElectionManager.updateBeanLists();
+                ElectionManager.updateBeanLists(candidates, electors);
 
                 if(GUIConfigTxtBoxElectionName.getText().toCharArray().length<Constants.maxSizeForTextBox){
                     ElectionManager.getElection().setName(GUIConfigTxtBoxElectionName.getText());
@@ -552,11 +581,14 @@ public class GUIConfig extends javax.swing.JFrame {
 
                 ElectionManager.getElection().setStarted(true);
                 ElectionManager.addBlankCandidate();
-                ElectorList.resetElectorsVoted();
+                electors.resetElectorsVoted();
                 updateGUILists();
+
                 electionManager.save(Constants.electionFilePath);
 
-
+                remote.addCandidates(candidates.getList());
+                remote.addElectors(electors.getList());
+                
                 dispose();
             }else{
                 JOptionPane.showMessageDialog(Exception, Errors.EmptyLists.getErro(), Constants.exceptionDialogPopUpTitle, JOptionPane.OK_OPTION);
@@ -582,7 +614,7 @@ public class GUIConfig extends javax.swing.JFrame {
                 ElectionManager.getElection().setStartDate(LocalDate.parse(GUIConfigTxtBoxElectionStartDate.getText(), MainUtils.formatter));
                 ElectionManager.getElection().setEndDate(LocalDate.parse(GUIConfigTxtBoxElectionEndDate.getText(), MainUtils.formatter));
                 ElectionManager.getElection().setName(GUIConfigTxtBoxElectionName.getText());
-                ElectionManager.updateBeanLists();
+                ElectionManager.updateBeanLists(candidates, electors);
 
                 JFileChooser fileChooser = new JFileChooser();
                 ElectionManager electionManager = new ElectionManager();
@@ -616,7 +648,7 @@ public class GUIConfig extends javax.swing.JFrame {
 
     private void GUIConfigBtnNewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_GUIConfigBtnNewActionPerformed
         // TODO add your handling code here:
-        ElectionManager.newElection();
+        ElectionManager.newElection(candidates, electors);
         updateGUILists();
         updateTextBoxes();
     }//GEN-LAST:event_GUIConfigBtnNewActionPerformed
@@ -666,14 +698,53 @@ public class GUIConfig extends javax.swing.JFrame {
         
         GUIConfigTxtBoxElectionStartDate.setText(firstDate.format(formatter));
         GUIConfigTxtBoxElectionEndDate.setText(lastDate.format(formatter));
-        
-        
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        // TODO add your handling code here:
+        
+        try{
+       
+            List<Block> blockchain = remote.getBlockchain().getChain();
+            List<CandidateBean> candidateList = candidates.getList();
+            Map<String, Integer> contagemVotos = new HashMap<>();
+            
+            for(CandidateBean bean : candidateList){
+               contagemVotos.put(bean.getName(), 0);
+            }
+            
+            boolean isFirst = true;
+            
+            for(Block block : blockchain){
+                if(isFirst){
+                    isFirst = false;
+                    continue;
+                }
+                List<String> transactionsList = (List<String>) Serializer.base64ToObject(block.getData()); 
+                for(String voteInfo : transactionsList){
+                    Vote vote = (Vote) Serializer.base64ToObject(voteInfo);
+                    int currentVotes = contagemVotos.get(vote.getTo());
+                    currentVotes++;
+                    contagemVotos.put(vote.getTo(), currentVotes);
+                }
+            }
+            System.out.println("------------------------------------------------------------------------------------------\n");
+            for(CandidateBean bean : candidateList){
+                 System.out.println("\nCandidato: " + bean.getName());
+                 System.out.println("Votos: " + contagemVotos.get(bean.getName()));
+                 System.out.println("---------------------------------------\n");
+            }
+            System.out.println("------------------------------------------------------------------------------------------\n");
+            
+        }catch(Exception e){
+            System.out.println("Erro a contar votos" + e);
+        } 
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -700,13 +771,13 @@ public class GUIConfig extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> {
             try {
-                new GUIConfig().setVisible(true);
+                new GUIConfig(candidates, electors, remote).setVisible(true);
             } catch (Exception ex) {
                 Logger.getLogger(GUIConfig.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
     }
-
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JDialog Exception;
     private javax.swing.JButton GUIConfigBtnClose;
@@ -731,7 +802,10 @@ public class GUIConfig extends javax.swing.JFrame {
     private javax.swing.JTextField GUIConfigTxtBoxElectionStartDate;
     private javax.swing.JDialog chooseElectorFile;
     private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     // End of variables declaration//GEN-END:variables
+
+    
 }

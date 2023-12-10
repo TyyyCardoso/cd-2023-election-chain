@@ -4,15 +4,16 @@
  */
 package electionspoo.gui;
 
-import electionspoo.beans.candidate.CandidateList;
+import distributedMiner.RemoteInterface;
+import electionspoo.beans.candidate.Candidates;
 import electionspoo.beans.election.ElectionManager;
-import electionspoo.beans.elector.ElectorList;
-import electionspoo.blockchain.BlockChain;
+import electionspoo.beans.elector.Electors;
 import electionspoo.utils.Constants;
 import electionspoo.utils.enums.Errors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import utils.RMI;
 
 /**
  *
@@ -20,23 +21,31 @@ import javax.swing.JOptionPane;
  */
 public class GUIMainMenu extends javax.swing.JFrame {
     
-   
-    BlockChain chain = new BlockChain();
+    RemoteInterface remote;
+    Candidates candidates;
+    Electors electors;
+    
     /**
      * Creates new form Menu
      * @throws java.lang.Exception
      */
     public GUIMainMenu() throws Exception {
         initComponents();
-        ElectorList electorList = new ElectorList();
-        CandidateList candidateList = new CandidateList();  
+        electors = new Electors();
+        candidates = new Candidates();  
         ElectionManager electionManager = new ElectionManager();
         
-        electorList.load(Constants.electorFilePath);
-        candidateList.load(Constants.candidateFilePath);
-        electionManager.load(Constants.electionFilePath);
+        electionManager.load(Constants.electionFilePath, candidates, electors);
         
-        System.out.println(chain.toString());
+        try {
+            String ip = "//192.168.169.194:10010/RemoteMiner";
+            remote = (RemoteInterface) RMI.getRemote(ip);
+            //onMessage("Connected to ", ip);
+            System.out.println("Connected to " + ip);
+        } catch (Exception e) {
+            System.out.println("Error connect to server" + e);
+            //onException("Connect to server", e);
+        }
     }
 
     /**
@@ -188,7 +197,7 @@ public class GUIMainMenu extends javax.swing.JFrame {
     private void MenuBarEleicoesVotarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuBarEleicoesVotarActionPerformed
         // TODO add your handling code here:
         try {
-            GUIVote dialog = new GUIVote(this, true, chain);
+            GUIVote dialog = new GUIVote(this, true, remote, candidates, electors);
             dialog.setVisible(true);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(Exception, Errors.OpeningNewPanelError.getErro(), Constants.exceptionDialogPopUpTitle, JOptionPane.OK_OPTION);
@@ -215,7 +224,7 @@ public class GUIMainMenu extends javax.swing.JFrame {
     private void MainMenuBtnVotarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MainMenuBtnVotarActionPerformed
         // TODO add your handling code here:
         try {
-            GUIVote dialog = new GUIVote(this, true, chain);
+            GUIVote dialog = new GUIVote(this, true, remote, candidates, electors);
             dialog.setVisible(true);
         } catch (Exception ex) {
              JOptionPane.showMessageDialog(Exception, Errors.OpeningNewPanelError.getErro(), Constants.exceptionDialogPopUpTitle, JOptionPane.OK_OPTION);
@@ -230,8 +239,9 @@ public class GUIMainMenu extends javax.swing.JFrame {
     private void MainMenuBtnConfiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MainMenuBtnConfiActionPerformed
         try {
             // TODO add your handling code here:
-            GUIConfig dialog = new GUIConfig();
+            GUIConfig dialog = new GUIConfig(candidates, electors, remote);
             dialog.setVisible(true);
+            
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(Exception, Errors.OpeningNewPanelError.getErro(), Constants.exceptionDialogPopUpTitle, JOptionPane.OK_OPTION);
             Logger.getLogger(GUIElector.class.getName()).log(Level.SEVERE, null, ex);
@@ -242,7 +252,7 @@ public class GUIMainMenu extends javax.swing.JFrame {
         // TODO add your handling code here:
 
         try {
-            GUIConfig dialog = new GUIConfig();
+            GUIConfig dialog = new GUIConfig(candidates, electors, remote);
             dialog.setVisible(true);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(Exception, Errors.OpeningNewPanelError.getErro(), Constants.exceptionDialogPopUpTitle, JOptionPane.OK_OPTION);
@@ -254,7 +264,7 @@ public class GUIMainMenu extends javax.swing.JFrame {
     private void MainMenuBtnResultsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MainMenuBtnResultsActionPerformed
         // TODO add your handling code here:
         try{
-            GUIResults dialog = new GUIResults(this, true);
+            GUIResults dialog = new GUIResults(this, true, candidates, electors);
             dialog.setVisible(true);
         } catch (Exception e){
             JOptionPane.showMessageDialog(Exception, Errors.OpeningNewPanelError.getErro(), Constants.exceptionDialogPopUpTitle, JOptionPane.OK_OPTION);

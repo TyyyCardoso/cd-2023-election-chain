@@ -96,9 +96,14 @@ public class MainUtils {
     }
 
     public static ImageIcon byteArrayToIcon(byte[] byteArray) throws IOException {
-        ByteArrayInputStream inStreambj = new ByteArrayInputStream(byteArray);
-        BufferedImage newImage = ImageIO.read(inStreambj);
-        Image img = (Image) newImage;
+        Image img = null;
+        try{
+            ByteArrayInputStream inStreambj = new ByteArrayInputStream(byteArray);
+            BufferedImage newImage = ImageIO.read(inStreambj);
+            img = (Image) newImage;
+        }catch(Exception e){
+        }
+        
         return new ImageIcon(img);
     }
 

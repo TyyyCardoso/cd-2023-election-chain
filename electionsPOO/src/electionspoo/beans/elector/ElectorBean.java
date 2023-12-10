@@ -5,12 +5,10 @@
 package electionspoo.beans.elector;
 
 import electionspoo.beans.candidate.CandidateBean;
-import electionspoo.beans.transaction.UserCredentials;
 import electionspoo.utils.Constants;
 import electionspoo.utils.MainUtils;
 import java.io.IOException;
 import java.io.Serializable;
-import java.security.PublicKey;
 import java.time.LocalDate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,8 +20,6 @@ import javax.swing.ImageIcon;
  */
 public class ElectorBean implements Serializable, Comparable {
 
-    private static final long serialVersionUID = 7920815667225358507L; 
-    
     private String name;
     private int CC;
     private char gender;
@@ -33,7 +29,6 @@ public class ElectorBean implements Serializable, Comparable {
     private CandidateBean votedCandidate;
     private byte[] photo;
 
-    
     public CandidateBean getVotedCandidate() {
         return votedCandidate;
     }
@@ -137,8 +132,7 @@ public class ElectorBean implements Serializable, Comparable {
 
     public ImageIcon getPhoto() {
         try {
-            if(null!=photo)
-                return MainUtils.byteArrayToIcon(photo);
+            return MainUtils.byteArrayToIcon(photo);
         } catch (IOException ex) {
             Logger.getLogger(ElectorBean.class.getName()).log(Level.SEVERE, null, ex);
         }

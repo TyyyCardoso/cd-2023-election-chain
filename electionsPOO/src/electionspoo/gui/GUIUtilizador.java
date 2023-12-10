@@ -4,15 +4,13 @@
  */
 package electionspoo.gui;
 
+import client.Vote;
+import distributedMiner.RemoteInterface;
+import distributedMiner.transaction.UserCredentials;
 import electionspoo.beans.candidate.CandidateBean;
-import electionspoo.beans.candidate.CandidateList;
+import electionspoo.beans.candidate.Candidates;
 import electionspoo.beans.elector.ElectorBean;
-import electionspoo.beans.elector.ElectorList;
-import electionspoo.blockchain.BlockChain;
-import electionspoo.beans.transaction.Transaction;
-import electionspoo.beans.transaction.TransactionList;
-import electionspoo.beans.transaction.UserCredentials;
-import electionspoo.blockchain.MerkleTree;
+import electionspoo.beans.elector.Electors;
 import electionspoo.utils.Constants;
 import electionspoo.utils.MainUtils;
 import electionspoo.utils.enums.Errors;
@@ -20,6 +18,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
+import utils.SecurityUtils;
 
 /**
  *
@@ -28,13 +27,15 @@ import javax.swing.JOptionPane;
 public class GUIUtilizador extends javax.swing.JFrame {
 
     static ElectorBean electorLogged;
-    private BlockChain chain;
     static UserCredentials keys;
+    RemoteInterface remote;
+    Candidates candidates;
+    Electors electors;
     
     private void updateGUIList() {
         MainUtils.listaGUICandidate.removeAllElements();
-        for (CandidateBean candidate : CandidateList.getList()){
-            MainUtils.listaGUICandidate.addElement(CandidateList.getGUIListLine(candidate));
+        for (CandidateBean candidate : candidates.getList()){
+            MainUtils.listaGUICandidate.addElement(candidates.getGUIListLine(candidate));
         }
 
     }
@@ -42,25 +43,28 @@ public class GUIUtilizador extends javax.swing.JFrame {
      * Creates new form GUIUtilizador
      * @param electorLogged
      */
-    public GUIUtilizador(ElectorBean electorLogged, BlockChain chain, UserCredentials keys) {
+    public GUIUtilizador(ElectorBean electorLogged, RemoteInterface remote, UserCredentials keys, Candidates candidates, Electors electors) {
         initComponents();
         
+        this.remote = remote;
+        this.keys = keys;
+        this.candidates = candidates;
+        this.electors = electors;
+        
         GUIUtilizador.electorLogged = electorLogged;
-        GUIUtilizador.keys = keys;
-                
+        
         GuiUtilizadorCandidateList.setModel(MainUtils.listaGUICandidate);
         
         GUIUtilizadorCCLabel.setText("CC = " + electorLogged.getCC());
         GUIUtilizadorNome.setText(electorLogged.getName());
         GUIUtilizadorDataNascimento.setText(electorLogged.getBirthDate());
-        if (electorLogged.getPhoto() != null) {
+        /*if (electorLogged.getPhoto() != null) {
             GUIUtilizadorPhoto.setIcon(MainUtils.resizeIcon(electorLogged.getPhoto(), GUIUtilizadorPhoto.getWidth(), GUIUtilizadorPhoto.getHeight()));   
-        } else {
+        } else {*/
             GUIUtilizadorPhoto.setIcon(MainUtils.resizeIcon(new ImageIcon(getClass().getResource(Constants.personResource)), GUIUtilizadorPhoto.getWidth(), GUIUtilizadorPhoto.getHeight()));   
-        } 
+        //} 
         
-        this.chain = chain;
-        System.out.println(chain.toString());
+        
         
         updateGUIList();
     }
@@ -187,14 +191,14 @@ public class GUIUtilizador extends javax.swing.JFrame {
         // TODO add your handling code here:
         
         
-        if(GuiUtilizadorCandidateList.getSelectedIndex()==CandidateList.getList().size()){
+        if(GuiUtilizadorCandidateList.getSelectedIndex()==candidates.size()){
             
         }else{
             int selections[] = GuiUtilizadorCandidateList.getSelectedIndices();
             if(selections.length>0){
-                GUIUtilizadorCandidateName.setText(CandidateList.getList().get(selections[0]).getInitials());
-                if (CandidateList.getList().get(selections[0]).getPhoto() != null) {
-                    GUIUtilizadorPhotoBranco.setIcon(MainUtils.resizeIcon(CandidateList.getList().get(selections[0]).getPhoto(), GUIUtilizadorPhoto.getWidth(), GUIUtilizadorPhoto.getHeight()));   
+                GUIUtilizadorCandidateName.setText(candidates.getList().get(selections[0]).getInitials());
+                if (candidates.getList().get(selections[0]).getPhoto() != null) {
+                    GUIUtilizadorPhotoBranco.setIcon(MainUtils.resizeIcon(candidates.getList().get(selections[0]).getPhoto(), GUIUtilizadorPhoto.getWidth(), GUIUtilizadorPhoto.getHeight()));   
                 } else {
                     GUIUtilizadorPhotoBranco.setIcon(MainUtils.resizeIcon(new ImageIcon(getClass().getResource(Constants.blankResource)), GUIUtilizadorPhoto.getWidth(), GUIUtilizadorPhoto.getHeight()));   
                 } 
@@ -210,32 +214,28 @@ public class GUIUtilizador extends javax.swing.JFrame {
         // TODO add your handling code here:
         int selections[] = GuiUtilizadorCandidateList.getSelectedIndices();
         
-       
-        
-        for(int i=0;i<ElectorList.getList().size();i++){
-            if(ElectorList.getList().get(i).equals(electorLogged)){
-                ElectorList.getList().get(i).setVoted(true);
-                ElectorList.getList().get(i).setVotedCandidate(CandidateList.getList().get(selections[0]));
-                CandidateList.getList().get(selections[0]).setVotes(1);
+        for(int i=0;i<electors.size();i++){
+            if(electors.getList().get(i).equals(electorLogged)){
+                electors.getList().get(i).setVoted(true);
+                electors.getList().get(i).setVotedCandidate(candidates.getList().get(selections[0]));
+                candidates.getList().get(selections[0]).setVotes(1);
                 
-                ElectorBean eleitor = ElectorList.getList().get(i);
-                MerkleTree tree = null;
                 try {
-                    Transaction voto = new Transaction(keys.getBase64PublicKey(), CandidateList.getList().get(selections[0]).getInitials());
-                    voto.sign(keys.getPrivKey());
-                    tree = TransactionList.addTransaction(voto);
-                } catch (java.lang.Exception ex) {
-                    Logger.getLogger(GUIUtilizador.class.getName()).log(Level.SEVERE, null, ex);
+                    String electorName = electors.getList().get(i).getName();
+                    String candidateBean = candidates.getList().get(selections[0]).getName();
+                    byte[] electorNameBytes = SecurityUtils.encrypt(utils.Converter.objectToByteArray(electorName), keys.getPubKey());
+                    String finalElectorName = utils.Converter.byteArrayToHex(electorNameBytes);
+                    Vote vote = new Vote(finalElectorName, candidateBean);
+                    vote.sign(keys.getPrivKey());
+                    remote.addTransaction(vote.toText());
+                } catch (Exception ex) {
+                    System.out.println("Exception: " + ex);
                 }
                 
-                if(null!=tree){
-                    chain.add(tree.getRoot().toString(), Constants.minerDifficulty, tree);
-                }
-       
                 JOptionPane.showMessageDialog(Exception, Constants.voteCompleted, Constants.infoDialogPopUpTitle, JOptionPane.OK_OPTION);
                 dispose();
                 try {
-                    GUIVote dialog = new GUIVote(this, true, chain);
+                    GUIVote dialog = new GUIVote(this, true, remote, candidates, electors);
                     dialog.setVisible(true);
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(Exception, Errors.OpeningNewPanelError.getErro(), Constants.exceptionDialogPopUpTitle, JOptionPane.OK_OPTION);
@@ -250,7 +250,7 @@ public class GUIUtilizador extends javax.swing.JFrame {
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -276,7 +276,7 @@ public class GUIUtilizador extends javax.swing.JFrame {
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> {
-            new GUIUtilizador(electorLogged, null, keys).setVisible(true);
+            new GUIUtilizador(electorLogged, remote, keys, candidates, electors).setVisible(true);
         });
     }
 

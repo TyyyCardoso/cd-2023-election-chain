@@ -5,8 +5,9 @@
 package electionspoo.beans.election;
 
 import electionspoo.beans.candidate.CandidateBean;
-import electionspoo.beans.candidate.CandidateList;
-import electionspoo.beans.elector.ElectorList;
+import electionspoo.beans.candidate.Candidates;
+import electionspoo.beans.elector.ElectorBean;
+import electionspoo.beans.elector.Electors;
 import electionspoo.utils.Constants;
 import electionspoo.utils.interfaces.FileManager;
 import java.io.File;
@@ -16,6 +17,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -42,17 +44,17 @@ public class ElectionManager implements FileManager, Serializable {
         election.getCandidateList().add(new CandidateBean(Constants.blankCandidateName, Constants.blankCandidateName));  
     }
 
-    public static void newElection() {
-        CandidateList.resetAllCandidateVotes();
-        ElectorList.resetElectorsVoted();
-        CandidateList.setList(new ArrayList<>());
-        ElectorList.setList(new ArrayList<>());
-        election = new ElectionBean();
+    public static void newElection(Candidates candidates, Electors electors) {
+        candidates.resetAllCandidateVotes();
+        electors.resetElectorsVoted();
+        candidates = new Candidates();
+        electors = new Electors();
+        election = new ElectionBean(candidates, electors);
     }
 
-    public static void updateBeanLists() {
-        election.setCandidateList(CandidateList.getList());
-        election.setElectorList(ElectorList.getList());
+    public static void updateBeanLists(Candidates candidates, Electors electors) {
+        election.setCandidateList(candidates.getList());
+        election.setElectorList(electors.getList());
     }
 
     @Override
@@ -63,17 +65,31 @@ public class ElectionManager implements FileManager, Serializable {
     }
 
     @Override
-    public void load(String nomeFicheiro) throws Exception {
+    public void load(String nomeFicheiro, Candidates candidates, Electors electors) throws Exception {
         if (new File(nomeFicheiro).exists()) {
             try ( ObjectInputStream file = new ObjectInputStream(new FileInputStream(nomeFicheiro))) {
+               
                 election = (ElectionBean) file.readObject();
-                CandidateList.setList(election.getCandidateList());
-                ElectorList.setList(election.getElectorList());
+               
+                List<CandidateBean> candidatesList = election.getCandidateList();
+                for(CandidateBean bean : candidatesList){
+                    candidates.addCandidate(bean);
+                }
+                
+                List<ElectorBean> electorList = election.getElectorList();
+                for(ElectorBean bean : electorList){
+                    electors.addElector(bean);
+                }
             }
         } else {
-            election = new ElectionBean();
+            election = new ElectionBean(candidates, electors);
             save(nomeFicheiro);
         }
+    }
+
+    @Override
+    public void load(String nomeFicheiro) throws Exception {
+        
     }
 
 }

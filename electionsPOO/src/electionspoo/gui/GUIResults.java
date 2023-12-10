@@ -5,9 +5,9 @@
 package electionspoo.gui;
 
 
-import electionspoo.beans.candidate.CandidateList;
+import electionspoo.beans.candidate.Candidates;
 import electionspoo.beans.election.ElectionManager;
-import electionspoo.beans.elector.ElectorList;
+import electionspoo.beans.elector.Electors;
 import electionspoo.utils.Constants;
 import electionspoo.utils.MainUtils;
 import electionspoo.utils.enums.Errors;
@@ -25,22 +25,24 @@ import javax.swing.JOptionPane;
  */
 public class GUIResults extends javax.swing.JDialog {
 
+    Candidates candidates;
+    Electors electors;
     
     private void updateGUILists() {
         MainUtils.listaGUIElector.removeAllElements();
         MainUtils.listaGUICandidate.removeAllElements();
         MainUtils.listaGUIResults.removeAllElements();
         
-        for (int i = 0; i < ElectorList.getList().size(); i++) {
-            if(ElectorList.getList().get(i).isVoted()){
-                MainUtils.listaGUIElector.addElement(ElectorList.getGUIListLine(ElectionManager.getElection().getElectorList().get(i)));
+        for (int i = 0; i < electors.size(); i++) {
+            if(electors.getList().get(i).isVoted()){
+                MainUtils.listaGUIElector.addElement(electors.getGUIListLine(ElectionManager.getElection().getElectorList().get(i)));
             }
         }
-        for (int i = 0; i < CandidateList.getList().size(); i++) {
-            MainUtils.listaGUICandidate.addElement(CandidateList.getGUIListLine(ElectionManager.getElection().getCandidateList().get(i)));
+        for (int i = 0; i < candidates.size(); i++) {
+            MainUtils.listaGUICandidate.addElement(candidates.getGUIListLine(ElectionManager.getElection().getCandidateList().get(i)));
         }
-        for (int i = 0; i < CandidateList.getList().size(); i++) {
-            MainUtils.listaGUIResults.addElement(CandidateList.getResultsGUILine(ElectionManager.getElection().getCandidateList().get(i)));
+        for (int i = 0; i < candidates.size(); i++) {
+            MainUtils.listaGUIResults.addElement(candidates.getResultsGUILine(ElectionManager.getElection().getCandidateList().get(i)));
         }
         
     }
@@ -49,9 +51,12 @@ public class GUIResults extends javax.swing.JDialog {
      * @param parent
      * @param modal
      */
-    public GUIResults(java.awt.Frame parent, boolean modal) {
+    public GUIResults(java.awt.Frame parent, boolean modal, Candidates candidates, Electors electors) {
         super(parent, modal);
         initComponents();
+        
+        this.candidates = candidates;
+        this.electors = electors;
         
         GUIResultsEleitorList.setModel(MainUtils.listaGUIElector);
         GUIResultsCandidatesList.setModel(MainUtils.listaGUICandidate);
@@ -318,11 +323,11 @@ public class GUIResults extends javax.swing.JDialog {
             if(textToSearch.toCharArray().length<Constants.maxSizeForTextBox){
                 int index;
 
-                index = ElectorList.searchElectorByName(textToSearch);
+                index = electors.searchElectorByName(textToSearch);
                 if (!(MainUtils.isNullOrEmpty(String.valueOf(index)))) {
                     GUIResultsEleitorList.setSelectedIndex(index);
                 } else {
-                    index = ElectorList.searchElectorByCC(textToSearch);
+                    index = electors.searchElectorByCC(textToSearch);
                     if (!(MainUtils.isNullOrEmpty(String.valueOf(index)))) {
                         GUIResultsEleitorList.setSelectedIndex(index);
                     } else {
@@ -387,7 +392,7 @@ public class GUIResults extends javax.swing.JDialog {
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -413,7 +418,7 @@ public class GUIResults extends javax.swing.JDialog {
 
         /* Create and display the dialog */
         java.awt.EventQueue.invokeLater(() -> {
-            GUIResults dialog = new GUIResults(new javax.swing.JFrame(), true);
+            GUIResults dialog = new GUIResults(new javax.swing.JFrame(), true, candidates, electors);
             dialog.addWindowListener(new java.awt.event.WindowAdapter() {
                 @Override
                 public void windowClosing(java.awt.event.WindowEvent e) {

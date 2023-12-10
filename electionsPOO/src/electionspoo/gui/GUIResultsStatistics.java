@@ -7,10 +7,10 @@ package electionspoo.gui;
 import electionspoo.beans.candidate.CandidateBean;
 import electionspoo.beans.election.ElectionBean;
 import javax.swing.JDialog;
-import org.jfree.chart.ChartFactory;
+/*import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.category.DefaultCategoryDataset;*/
 
 /**
  *
@@ -27,13 +27,13 @@ public class GUIResultsStatistics extends JDialog {
     }
     
     public void criarGrafico(ElectionBean election){
-        DefaultCategoryDataset barra = new DefaultCategoryDataset();
+        /*DefaultCategoryDataset barra = new DefaultCategoryDataset();
         for (CandidateBean candidate : election.getCandidateList()){
             barra.setValue(candidate.getVotes(), candidate.getName(), "");
         }
         JFreeChart grafico = ChartFactory.createBarChart("A", "B", "C", barra);
         ChartPanel painel = new ChartPanel(grafico);
-        add(painel);
+        add(painel);*/
     }
     
     public static void main(String[] args) {

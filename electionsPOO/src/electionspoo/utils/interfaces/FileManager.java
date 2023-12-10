@@ -4,6 +4,9 @@
  */
 package electionspoo.utils.interfaces;
 
+import electionspoo.beans.candidate.Candidates;
+import electionspoo.beans.elector.Electors;
+
 /**
  *
  * @author User
@@ -15,4 +18,7 @@ public interface FileManager{
 
     //le um ficheiro e passa os dados para a arraylist
     public void load(String nomeFicheiro) throws Exception;
+    
+     //le um ficheiro e passa os dados para a arraylist
+    public void load(String nomeFicheiro, Candidates candidates, Electors electors) throws Exception;
 }

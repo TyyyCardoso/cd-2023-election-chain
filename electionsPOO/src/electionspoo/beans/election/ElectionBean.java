@@ -5,14 +5,14 @@
 package electionspoo.beans.election;
 
 import electionspoo.beans.candidate.CandidateBean;
-import electionspoo.beans.candidate.CandidateList;
+import electionspoo.beans.candidate.Candidates;
 import electionspoo.beans.elector.ElectorBean;
-import electionspoo.beans.elector.ElectorList;
-import electionspoo.beans.transaction.Transaction;
+import electionspoo.beans.elector.Electors;
 import electionspoo.utils.MainUtils;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -20,21 +20,20 @@ import java.util.ArrayList;
  */
 public class ElectionBean implements Serializable {
     
-    private static final long serialVersionUID = 7753064471717099599L; 
+    private static final long serialVersionUID = -6930306948144226156L;
     
     private String name;
-    private ArrayList<ElectorBean> electorList;
-    private ArrayList<CandidateBean> candidateList;
-    private ArrayList<Transaction> transactionList;
+    private List<ElectorBean> electorList;
+    private List<CandidateBean> candidateList;
     private LocalDate startDate;
     private LocalDate endDate;
     private boolean started;
 
     
-    public ElectionBean(){
+    public ElectionBean(Candidates candidates, Electors electors){
         this.name = "Eleicao Basica";
-        this.electorList = ElectorList.getList();
-        this.candidateList = CandidateList.getList();
+        this.electorList = electors.getList();
+        this.candidateList = candidates.getList();
         this.startDate = LocalDate.parse("01/01/2022", MainUtils.formatter);
         this.endDate = LocalDate.parse("01/05/2022", MainUtils.formatter);
         this.started = false;
@@ -48,7 +47,7 @@ public class ElectionBean implements Serializable {
         this.endDate = endDate;
         this.started = false;
     }
-    
+
     public String getName() {
         return name;
     }
@@ -73,19 +72,19 @@ public class ElectionBean implements Serializable {
         this.endDate = endDate;
     }
 
-    public ArrayList<ElectorBean> getElectorList() {
+    public List<ElectorBean> getElectorList() {
         return electorList;
     }
 
-    public void setElectorList(ArrayList<ElectorBean> electorList) {
+    public void setElectorList(List<ElectorBean> electorList) {
         this.electorList = electorList;
     }
 
-    public ArrayList<CandidateBean> getCandidateList() {
+    public List<CandidateBean> getCandidateList() {
         return candidateList;
     }
 
-    public void setCandidateList(ArrayList<CandidateBean> candidateList) {
+    public void setCandidateList(List<CandidateBean> candidateList) {
         this.candidateList = candidateList;
     }
     

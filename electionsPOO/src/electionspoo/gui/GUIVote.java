@@ -4,10 +4,11 @@
  */
 package electionspoo.gui;
 
+import distributedMiner.RemoteInterface;
+import distributedMiner.transaction.UserCredentials;
+import electionspoo.beans.candidate.Candidates;
 import electionspoo.beans.election.ElectionManager;
-import electionspoo.beans.elector.ElectorList;
-import electionspoo.blockchain.BlockChain;
-import electionspoo.beans.transaction.UserCredentials;
+import electionspoo.beans.elector.Electors;
 import electionspoo.utils.Constants;
 import electionspoo.utils.MainUtils;
 import electionspoo.utils.enums.Errors;
@@ -24,13 +25,16 @@ import javax.swing.JOptionPane;
  * @author Tiago
  */
 public class GUIVote extends javax.swing.JDialog {
-
-    private BlockChain chain;
+    
+    UserCredentials keys;
+    RemoteInterface remote;
+    Candidates candidates;
+    Electors electors;
     
     private void updateGUIList() {
         MainUtils.listaGUIElector.removeAllElements();
-        for (int i = 0; i < ElectorList.getList().size(); i++) {
-            MainUtils.listaGUIElector.addElement(ElectorList.getGUIListLine(ElectionManager.getElection().getElectorList().get(i)));
+        for (int i = 0; i < electors.size(); i++) {
+            MainUtils.listaGUIElector.addElement(electors.getGUIListLine(ElectionManager.getElection().getElectorList().get(i)));
         }
 
     }
@@ -40,15 +44,14 @@ public class GUIVote extends javax.swing.JDialog {
      * @param modal
      * @throws java.lang.Exception
      */
-    public GUIVote(java.awt.Frame parent, boolean modal, BlockChain chain) throws Exception {
+    public GUIVote(java.awt.Frame parent, boolean modal, RemoteInterface remote, Candidates candidates, Electors electors) throws Exception {
         super(parent, modal);
         initComponents();
       
         ElectionManager elec = new ElectionManager();
         elec.save(Constants.electionFilePath);
         
-        this.chain = chain;
-        System.out.println(chain.toString());
+        
         
         GuiVoteElectorList.setModel(MainUtils.listaGUIElector);
         if(ElectionManager.getElection()!=null){
@@ -57,6 +60,10 @@ public class GUIVote extends javax.swing.JDialog {
         GuiVoteEleicaoDataFim.setText(ElectionManager.getElection().getStartDate());
         }
         
+        this.remote = remote;
+        this.keys = keys;
+        this.electors = electors;
+        this.candidates = candidates;
         
         updateGUIList();
     }
@@ -77,7 +84,6 @@ public class GUIVote extends javax.swing.JDialog {
         GUIVoteAutenticationElectorPhoto = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
         GuiVotePassword = new javax.swing.JTextField();
-        jButton3 = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jButton1 = new javax.swing.JButton();
         GuiVoteSearchField = new javax.swing.JTextField();
@@ -125,13 +131,6 @@ public class GUIVote extends javax.swing.JDialog {
             }
         });
 
-        jButton3.setText("Login");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
-            }
-        });
-
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -144,8 +143,7 @@ public class GUIVote extends javax.swing.JDialog {
                         .addComponent(GUIVoteAutenticationElectorPhoto, javax.swing.GroupLayout.DEFAULT_SIZE, 404, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel1))
-                    .addComponent(GuiVotePassword)
-                    .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(GuiVotePassword))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -156,12 +154,9 @@ public class GUIVote extends javax.swing.JDialog {
                 .addGap(18, 18, 18)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(GUIVoteAutenticationElectorPhoto, javax.swing.GroupLayout.DEFAULT_SIZE, 411, Short.MAX_VALUE)
-                .addGap(18, 18, 18)
-                .addComponent(GuiVotePassword, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(GUIVoteAutenticationElectorPhoto, javax.swing.GroupLayout.DEFAULT_SIZE, 407, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addComponent(GuiVotePassword, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         jTabbedPane1.addTab("Autenticação", jPanel1);
@@ -230,7 +225,7 @@ public class GUIVote extends javax.swing.JDialog {
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGap(46, 46, 46)
                         .addComponent(InfoLabelAboutElector)))
-                .addContainerGap(109, Short.MAX_VALUE))
+                .addContainerGap(30, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Eleitores", jPanel2);
@@ -290,7 +285,7 @@ public class GUIVote extends javax.swing.JDialog {
                         .addGap(45, 45, 45)
                         .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 256, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(318, Short.MAX_VALUE))
+                .addContainerGap(241, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Eleição", jPanel3);
@@ -350,11 +345,11 @@ public class GUIVote extends javax.swing.JDialog {
             if(textToSearch.toCharArray().length<Constants.maxSizeForTextBox){
                 int index;
 
-                index = ElectorList.searchElectorByName(textToSearch);
+                index = electors.searchElectorByName(textToSearch);
                 if (!(MainUtils.isNullOrEmpty(String.valueOf(index)))) {
                     GuiVoteElectorList.setSelectedIndex(index);
                 } else {
-                    index = ElectorList.searchElectorByCC(textToSearch);
+                    index = electors.searchElectorByCC(textToSearch);
                     if (!(MainUtils.isNullOrEmpty(String.valueOf(index)))) {
                         GuiVoteElectorList.setSelectedIndex(index);
                     } else {
@@ -375,32 +370,50 @@ public class GUIVote extends javax.swing.JDialog {
         
         int selections[] = GuiVoteElectorList.getSelectedIndices();
         if(selections.length>0){
-            InfoLabelAboutElector.setText(ElectorList.getGUIListLine(ElectorList.getList().get(selections[0])));
-            GUIVoteCCElector.setText(String.valueOf(ElectorList.getList().get(selections[0]).getCC()));
+            InfoLabelAboutElector.setText(electors.getGUIListLine(electors.getList().get(selections[0])));
+            GUIVoteCCElector.setText(String.valueOf(electors.getList().get(selections[0]).getCC()));
             //foto to label
-            if (ElectorList.getList().get(selections[0]).getPhoto() != null) {
+            /*if (ElectorList.getList().get(selections[0]).getPhoto() != null) {
                 GuiVoteElectorPhoto.setIcon(MainUtils.resizeIcon(ElectorList.getList().get(selections[0]).getPhoto(), GuiVoteElectorPhoto.getWidth(), GuiVoteElectorPhoto.getHeight()));
                 GUIVoteAutenticationElectorPhoto.setIcon(MainUtils.resizeIcon(ElectorList.getList().get(selections[0]).getPhoto(), GUIVoteAutenticationElectorPhoto.getWidth(), GUIVoteAutenticationElectorPhoto.getHeight()));
-            } else {
+            } else {*/
                 GuiVoteElectorPhoto.setIcon(MainUtils.resizeIcon(new ImageIcon(getClass().getResource(Constants.personResource)), GuiVoteElectorPhoto.getWidth(), GuiVoteElectorPhoto.getHeight()));
                 GUIVoteAutenticationElectorPhoto.setIcon(MainUtils.resizeIcon(new ImageIcon(getClass().getResource(Constants.personResource)), GUIVoteAutenticationElectorPhoto.getWidth(), GUIVoteAutenticationElectorPhoto.getHeight()));
-            } 
+            //} 
         }
         
     }//GEN-LAST:event_GuiVoteElectorListValueChanged
 
+    private void GUIVoteCCElectorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_GUIVoteCCElectorActionPerformed
+        // TODO add your handling code here:
+        
+        int index = electors.searchElectorByCC(GUIVoteCCElector.getText());
+        
+        InfoLabelAboutElector.setText(electors.getGUIListLine(electors.getList().get(index)));
+        GUIVoteCCElector.setText(String.valueOf(electors.getList().get(index).getCC()));
+        //foto to label
+        /*if (ElectorList.getList().get(index).getPhoto() != null) {
+            GuiVoteElectorPhoto.setIcon(MainUtils.resizeIcon(ElectorList.getList().get(index).getPhoto(), GuiVoteElectorPhoto.getWidth(), GuiVoteElectorPhoto.getHeight()));
+            GUIVoteAutenticationElectorPhoto.setIcon(MainUtils.resizeIcon(ElectorList.getList().get(index).getPhoto(), GUIVoteAutenticationElectorPhoto.getWidth(), GUIVoteAutenticationElectorPhoto.getHeight()));
+        } else {*/
+            GuiVoteElectorPhoto.setIcon(MainUtils.resizeIcon(new ImageIcon(getClass().getResource(Constants.personResource)), GuiVoteElectorPhoto.getWidth(), GuiVoteElectorPhoto.getHeight()));
+            GUIVoteAutenticationElectorPhoto.setIcon(MainUtils.resizeIcon(new ImageIcon(getClass().getResource(Constants.personResource)), GUIVoteAutenticationElectorPhoto.getWidth(), GUIVoteAutenticationElectorPhoto.getHeight()));
+        //} 
+        
+    }//GEN-LAST:event_GUIVoteCCElectorActionPerformed
+
     private void GuiVotePasswordActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_GuiVotePasswordActionPerformed
         // TODO add your handling code here:
-        int index = ElectorList.searchElectorByCC(GUIVoteCCElector.getText());
-        String electorPassword = ElectorList.getList().get(index).getPassword();
+        int index = electors.searchElectorByCC(GUIVoteCCElector.getText());
+        String electorPassword = electors.getList().get(index).getPassword();
         String userInputPassword = GuiVotePassword.getText();
-
+        
         if(ElectionManager.electionStarted()){
-            if(!ElectorList.getList().get(index).isVoted()){
+            if(!electors.getList().get(index).isVoted()){
                 if(electorPassword.equals(userInputPassword)){
                     try {
                         // TODO add your handling code here:
-                        String userName = ElectorList.getList().get(index).getName();
+                        String userName = electors.getList().get(index).getName();
                         
                         UserCredentials keys = null;
                         
@@ -413,8 +426,7 @@ public class GUIVote extends javax.swing.JDialog {
                              }
                          }
                         
-                        // TODO add your handling code here:
-                        GUIUtilizador dialog = new GUIUtilizador(ElectorList.getList().get(index), chain, keys);
+                        GUIUtilizador dialog = new GUIUtilizador(electors.getList().get(index), remote, keys, candidates,electors);
                         dialog.setVisible(true);
                         dispose();
                     } catch (Exception ex) {
@@ -429,67 +441,10 @@ public class GUIVote extends javax.swing.JDialog {
         }
     }//GEN-LAST:event_GuiVotePasswordActionPerformed
 
-    private void GUIVoteCCElectorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_GUIVoteCCElectorActionPerformed
-        // TODO add your handling code here:
-
-        int index = ElectorList.searchElectorByCC(GUIVoteCCElector.getText());
-
-        InfoLabelAboutElector.setText(ElectorList.getGUIListLine(ElectorList.getList().get(index)));
-        GUIVoteCCElector.setText(String.valueOf(ElectorList.getList().get(index).getCC()));
-        //foto to label
-        if (ElectorList.getList().get(index).getPhoto() != null) {
-            GuiVoteElectorPhoto.setIcon(MainUtils.resizeIcon(ElectorList.getList().get(index).getPhoto(), GuiVoteElectorPhoto.getWidth(), GuiVoteElectorPhoto.getHeight()));
-            GUIVoteAutenticationElectorPhoto.setIcon(MainUtils.resizeIcon(ElectorList.getList().get(index).getPhoto(), GUIVoteAutenticationElectorPhoto.getWidth(), GUIVoteAutenticationElectorPhoto.getHeight()));
-        } else {
-            GuiVoteElectorPhoto.setIcon(MainUtils.resizeIcon(new ImageIcon(getClass().getResource(Constants.personResource)), GuiVoteElectorPhoto.getWidth(), GuiVoteElectorPhoto.getHeight()));
-            GUIVoteAutenticationElectorPhoto.setIcon(MainUtils.resizeIcon(new ImageIcon(getClass().getResource(Constants.personResource)), GUIVoteAutenticationElectorPhoto.getWidth(), GUIVoteAutenticationElectorPhoto.getHeight()));
-        }
-
-    }//GEN-LAST:event_GUIVoteCCElectorActionPerformed
-
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        // TODO add your handling code here:
-        int index = ElectorList.searchElectorByCC(GUIVoteCCElector.getText());
-        String electorPassword = ElectorList.getList().get(index).getPassword();
-        String userInputPassword = GuiVotePassword.getText();
-        
-        if(ElectionManager.electionStarted()){
-            if(!ElectorList.getList().get(index).isVoted()){
-                if(electorPassword.equals(userInputPassword)){
-                    try {                       
-                        String userName = ElectorList.getList().get(index).getName();
-                        
-                        UserCredentials keys = null;
-                        
-                         //Atribuir chaves se for a primeira vez a fazer login
-                         try{
-                             keys = UserCredentials.autenticar(userName, userInputPassword);
-                         }catch(Exception e){
-                             if(e.getMessage().startsWith("user")){
-                                keys = UserCredentials.registar(userName, userInputPassword);
-                             }
-                         }
-                        
-                        // TODO add your handling code here:
-                        GUIUtilizador dialog = new GUIUtilizador(ElectorList.getList().get(index), chain, keys);
-                        dialog.setVisible(true);
-                        dispose();
-                    } catch (Exception ex) {
-                        Logger.getLogger(GUIMainMenu.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-            }else{
-                JOptionPane.showMessageDialog(Exception, Errors.AlreadyVoted.getErro(), Constants.exceptionDialogPopUpTitle, JOptionPane.OK_OPTION);
-            }
-        }else{
-            JOptionPane.showMessageDialog(Exception, Errors.ElectionNotStarted.getErro(), Constants.exceptionDialogPopUpTitle, JOptionPane.OK_OPTION);
-        }         
-    }//GEN-LAST:event_jButton3ActionPerformed
-
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -518,7 +473,7 @@ public class GUIVote extends javax.swing.JDialog {
         java.awt.EventQueue.invokeLater(() -> {
             GUIVote dialog = null;
             try {
-                dialog = new GUIVote(new javax.swing.JFrame(), true, null);
+                dialog = new GUIVote(new javax.swing.JFrame(), true, remote, candidates, electors);
             } catch (Exception ex) {
                 Logger.getLogger(GUIVote.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -546,7 +501,6 @@ public class GUIVote extends javax.swing.JDialog {
     private javax.swing.JLabel InfoLabelAboutElector;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JPanel jPanel1;

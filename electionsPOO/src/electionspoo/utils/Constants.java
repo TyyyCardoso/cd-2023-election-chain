@@ -48,7 +48,4 @@ public class Constants {
     public static final String personResource = "/electionspoo/multimedia/person.png";
     public static final String blankResource = "/electionspoo/multimedia/blank.png";
     public static final String manuCandidatosResource = "/electionspoo/multimedia/menu_candidates.png";
-    
-    public static final int transactionListSize = 2;
-    public static final int minerDifficulty = 1;
 }
