@@ -46,6 +46,8 @@ public interface MiningListener {
 
     public void onUpdateVotes(String vote);
     
+    public void onUpdateElection();
+    
     public void onUpdateCandidates();
     
     public void onUpdateElectors();

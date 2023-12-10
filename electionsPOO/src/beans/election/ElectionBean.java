@@ -28,7 +28,6 @@ public class ElectionBean implements Serializable {
     private LocalDate startDate;
     private LocalDate endDate;
     private boolean started;
-
     
     public ElectionBean(Candidates candidates, Electors electors){
         this.name = "Eleicao Basica";

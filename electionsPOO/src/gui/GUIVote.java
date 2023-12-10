@@ -30,11 +30,12 @@ public class GUIVote extends javax.swing.JDialog {
     RemoteInterface remote;
     Candidates candidates;
     Electors electors;
+    ElectionManager election;
     
     private void updateGUIList() {
         MainUtils.listaGUIElector.removeAllElements();
         for (int i = 0; i < electors.size(); i++) {
-            MainUtils.listaGUIElector.addElement(electors.getGUIListLine(ElectionManager.getElection().getElectorList().get(i)));
+            MainUtils.listaGUIElector.addElement(electors.getGUIListLine(election.getElection().getElectorList().get(i)));
         }
 
     }
@@ -44,27 +45,25 @@ public class GUIVote extends javax.swing.JDialog {
      * @param modal
      * @throws java.lang.Exception
      */
-    public GUIVote(java.awt.Frame parent, boolean modal, RemoteInterface remote, Candidates candidates, Electors electors) throws Exception {
+    public GUIVote(java.awt.Frame parent, boolean modal, RemoteInterface remote, Candidates candidates, Electors electors, ElectionManager election) throws Exception {
         super(parent, modal);
         initComponents();
       
-        ElectionManager elec = new ElectionManager();
-        elec.save(Constants.electionFilePath);
-        
-        
-        
-        GuiVoteElectorList.setModel(MainUtils.listaGUIElector);
-        if(ElectionManager.getElection()!=null){
-            GuiVoteEleicaoNome.setText(ElectionManager.getElection().getName());
-        GuiVoteEleicaoDataInicio.setText(ElectionManager.getElection().getStartDate());
-        GuiVoteEleicaoDataFim.setText(ElectionManager.getElection().getStartDate());
-        }
-        
         this.remote = remote;
         this.keys = keys;
         this.electors = electors;
         this.candidates = candidates;
+        this.election = election;
         
+        election.save(Constants.electionFilePath);
+        
+        GuiVoteElectorList.setModel(MainUtils.listaGUIElector);
+        if(election.getElection()!=null){
+            GuiVoteEleicaoNome.setText(election.getElection().getName());
+            GuiVoteEleicaoDataInicio.setText(election.getElection().getStartDate());
+            GuiVoteEleicaoDataFim.setText(election.getElection().getStartDate());
+        }
+             
         updateGUIList();
     }
 
@@ -309,15 +308,14 @@ public class GUIVote extends javax.swing.JDialog {
         
         try {
             JFileChooser fileChooser = new JFileChooser();
-            ElectionManager electionManager = new ElectionManager();
             fileChooser.setCurrentDirectory(new File(System.getProperty(Constants.userSystemDir)));
             int result = fileChooser.showOpenDialog(fileChooser);
             if (result == JFileChooser.APPROVE_OPTION) {
                 String selectedFile = fileChooser.getSelectedFile().getAbsolutePath();
-                electionManager.load(selectedFile);
-                GuiVoteEleicaoNome.setText(ElectionManager.getElection().getName());
-                GuiVoteEleicaoDataInicio.setText(ElectionManager.getElection().getStartDate());
-                GuiVoteEleicaoDataFim.setText(ElectionManager.getElection().getEndDate());
+                election.load(selectedFile);
+                GuiVoteEleicaoNome.setText(election.getElection().getName());
+                GuiVoteEleicaoDataInicio.setText(election.getElection().getStartDate());
+                GuiVoteEleicaoDataFim.setText(election.getElection().getEndDate());
                 updateGUIList();
             }
         } catch (IOException ex) {
@@ -408,7 +406,7 @@ public class GUIVote extends javax.swing.JDialog {
         String electorPassword = electors.getList().get(index).getPassword();
         String userInputPassword = GuiVotePassword.getText();
         
-        if(ElectionManager.electionStarted()){
+        if(election.electionStarted()){
             if(!electors.getList().get(index).isVoted()){
                 if(electorPassword.equals(userInputPassword)){
                     try {
@@ -426,7 +424,7 @@ public class GUIVote extends javax.swing.JDialog {
                              }
                          }
                         
-                        GUIUtilizador dialog = new GUIUtilizador(electors.getList().get(index), remote, keys, candidates,electors);
+                        GUIUtilizador dialog = new GUIUtilizador(electors.getList().get(index), remote, keys, candidates, electors, election);
                         dialog.setVisible(true);
                         dispose();
                     } catch (Exception ex) {
@@ -473,7 +471,7 @@ public class GUIVote extends javax.swing.JDialog {
         java.awt.EventQueue.invokeLater(() -> {
             GUIVote dialog = null;
             try {
-                dialog = new GUIVote(new javax.swing.JFrame(), true, remote, candidates, electors);
+                dialog = new GUIVote(new javax.swing.JFrame(), true, remote, candidates, electors, election);
             } catch (Exception ex) {
                 Logger.getLogger(GUIVote.class.getName()).log(Level.SEVERE, null, ex);
             }

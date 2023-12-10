@@ -25,6 +25,7 @@ import beans.blockchain.consensus.LastBlock;
 import beans.votes.Votes;
 import beans.candidate.CandidateBean;
 import beans.election.ElectionBean;
+import beans.election.ElectionManager;
 import beans.elector.ElectorBean;
 import beans.elector.Electors;
 import java.net.InetAddress;
@@ -48,12 +49,13 @@ public class RemoteObject extends UnicastRemoteObject implements RemoteInterface
 
     MiningListener listener;
     MinerP2P myMiner;
+    
     Votes votes;
     Candidates candidates;
     Electors electors;
+    ElectionManager election;
     
     public Block miningBlock; // block in mining process
-
     public BlockChain blockchain;
 
     private String address; // nome do servidor
@@ -86,6 +88,8 @@ public class RemoteObject extends UnicastRemoteObject implements RemoteInterface
             candidates = new Candidates();
             //inicializar lista de eleitores
             electors = new Electors();
+            //inicializar eleição
+            election = new ElectionManager(candidates, electors);
             
             listener.onStartServer(utils.RMI.getRemoteName(port, RemoteInterface.OBJECT_NAME));
         } catch (Exception e) {
@@ -507,26 +511,57 @@ public class RemoteObject extends UnicastRemoteObject implements RemoteInterface
         
         listener.onMessage("synchonizeElectors", getClientName());
     }
-
+    
     @Override
     public List<ElectorBean> getElectorsList() throws RemoteException {
         return electors.getList();
     }
+    
+    //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    //:::::                                                         :::::::::::::
+    //:::::                 E L E C T I O N S
+    //:::::                                                         :::::::::::::
+    //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
     @Override
-    public void addElection(ElectionBean vote) throws RemoteException {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public void addElection(ElectionManager newElection) throws RemoteException {
+        //se já tiver a eleição não faz nada
+        if(newElection.equals(election)){
+            listener.onMessage("Finished Added Election", "");
+            return;
+        }
+        
+        election.setElection(newElection.getElection());
+        
+        listener.onUpdateElection();
+        listener.onMessage("addElection", getClientName());
+       
+        for (RemoteInterface node : network) {
+            node.synchonizeElection(election);
+        }
     }
 
     @Override
-    public void synchonizeElections(List<String> list) throws RemoteException {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public void synchonizeElection(ElectionManager newElection) throws RemoteException {
+        if(newElection.equals(election)){
+            return;
+        }
+           
+        addElection(newElection);
+  
+        //mandar sincronizar a rede
+        for (RemoteInterface node : network) {
+            node.synchonizeElection(election);
+        }
+        
+        listener.onMessage("synchonizeElection", getClientName());
     }
 
     @Override
-    public List<String> getElectionList() throws RemoteException {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public ElectionManager getElection() throws RemoteException {
+        return election;
     }
+
 
 
 

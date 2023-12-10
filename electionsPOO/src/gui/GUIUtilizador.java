@@ -8,6 +8,7 @@ import beans.votes.VoteBean;
 import beans.UserCredentials;
 import beans.candidate.CandidateBean;
 import beans.candidate.Candidates;
+import beans.election.ElectionManager;
 import beans.elector.ElectorBean;
 import beans.elector.Electors;
 import distributed.RemoteInterface;
@@ -31,6 +32,7 @@ public class GUIUtilizador extends javax.swing.JFrame {
     RemoteInterface remote;
     Candidates candidates;
     Electors electors;
+    ElectionManager election;
     
     private void updateGUIList() {
         MainUtils.listaGUICandidate.removeAllElements();
@@ -43,13 +45,14 @@ public class GUIUtilizador extends javax.swing.JFrame {
      * Creates new form GUIUtilizador
      * @param electorLogged
      */
-    public GUIUtilizador(ElectorBean electorLogged, RemoteInterface remote, UserCredentials keys, Candidates candidates, Electors electors) {
+    public GUIUtilizador(ElectorBean electorLogged, RemoteInterface remote, UserCredentials keys, Candidates candidates, Electors electors, ElectionManager election) {
         initComponents();
         
         this.remote = remote;
         this.keys = keys;
         this.candidates = candidates;
         this.electors = electors;
+        this.election = election;
         
         GUIUtilizador.electorLogged = electorLogged;
         
@@ -235,7 +238,7 @@ public class GUIUtilizador extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(Exception, Constants.voteCompleted, Constants.infoDialogPopUpTitle, JOptionPane.OK_OPTION);
                 dispose();
                 try {
-                    GUIVote dialog = new GUIVote(this, true, remote, candidates, electors);
+                    GUIVote dialog = new GUIVote(this, true, remote, candidates, electors, election);
                     dialog.setVisible(true);
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(Exception, Errors.OpeningNewPanelError.getErro(), Constants.exceptionDialogPopUpTitle, JOptionPane.OK_OPTION);
@@ -276,7 +279,7 @@ public class GUIUtilizador extends javax.swing.JFrame {
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> {
-            new GUIUtilizador(electorLogged, remote, keys, candidates, electors).setVisible(true);
+            new GUIUtilizador(electorLogged, remote, keys, candidates, electors, election).setVisible(true);
         });
     }
 

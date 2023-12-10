@@ -30,6 +30,7 @@ import utils.RMI;
 import beans.blockchain.Block;
 import beans.blockchain.BlockChain;
 import beans.candidate.CandidateBean;
+import beans.election.ElectionManager;
 import beans.elector.ElectorBean;
 import distributed.MiningListener;
 import distributed.RemoteInterface;
@@ -143,11 +144,11 @@ public class GUIServer extends javax.swing.JFrame implements MiningListener {
         pnLabelLeft5 = new javax.swing.JPanel();
         jLabel15 = new javax.swing.JLabel();
         jScrollPane15 = new javax.swing.JScrollPane();
-        lstElections = new javax.swing.JList<>();
+        lstElection = new javax.swing.JList<>();
         pnLabelCenter5 = new javax.swing.JPanel();
         jLabel16 = new javax.swing.JLabel();
         jScrollPane16 = new javax.swing.JScrollPane();
-        txtElections = new javax.swing.JTextArea();
+        txtElection = new javax.swing.JTextArea();
         pnCandidates = new javax.swing.JPanel();
         pnBlockchianTop2 = new javax.swing.JPanel();
         pnLabelLeft3 = new javax.swing.JPanel();
@@ -474,17 +475,17 @@ public class GUIServer extends javax.swing.JFrame implements MiningListener {
 
         jScrollPane15.setMaximumSize(new java.awt.Dimension(32767, 200));
 
-        lstElections.setModel(new javax.swing.AbstractListModel<String>() {
+        lstElection.setModel(new javax.swing.AbstractListModel<String>() {
             String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
             public int getSize() { return strings.length; }
             public String getElementAt(int i) { return strings[i]; }
         });
-        lstElections.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+        lstElection.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                lstElectionsValueChanged(evt);
+                lstElectionValueChanged(evt);
             }
         });
-        jScrollPane15.setViewportView(lstElections);
+        jScrollPane15.setViewportView(lstElection);
 
         pnLabelLeft5.add(jScrollPane15, java.awt.BorderLayout.CENTER);
 
@@ -499,12 +500,12 @@ public class GUIServer extends javax.swing.JFrame implements MiningListener {
         jScrollPane16.setMaximumSize(new java.awt.Dimension(300, 900000));
         jScrollPane16.setOpaque(false);
 
-        txtElections.setColumns(20);
-        txtElections.setFont(new java.awt.Font("Courier New", 1, 14)); // NOI18N
-        txtElections.setRows(5);
-        txtElections.setMaximumSize(new java.awt.Dimension(300, 900000));
-        txtElections.setOpaque(false);
-        jScrollPane16.setViewportView(txtElections);
+        txtElection.setColumns(20);
+        txtElection.setFont(new java.awt.Font("Courier New", 1, 14)); // NOI18N
+        txtElection.setRows(5);
+        txtElection.setMaximumSize(new java.awt.Dimension(300, 900000));
+        txtElection.setOpaque(false);
+        jScrollPane16.setViewportView(txtElection);
 
         pnLabelCenter5.add(jScrollPane16, java.awt.BorderLayout.CENTER);
 
@@ -708,6 +709,7 @@ public class GUIServer extends javax.swing.JFrame implements MiningListener {
             myRemote.synchonizeBlockchain(node);
             myRemote.synchonizeCandidates(node.getCandidateList());
             myRemote.synchonizeElectors(node.getElectorsList());
+            myRemote.synchonizeElection(node.getElection());
         } catch (Exception ex) {
             onException("Add Node", ex);
         }
@@ -746,9 +748,27 @@ public class GUIServer extends javax.swing.JFrame implements MiningListener {
         }
     }//GEN-LAST:event_lstElectorsValueChanged
 
-    private void lstElectionsValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_lstElectionsValueChanged
+    private void lstElectionValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_lstElectionValueChanged
         // TODO add your handling code here:
-    }//GEN-LAST:event_lstElectionsValueChanged
+        try{
+            if (lstElection.getSelectedIndex() >= 0) {
+                ElectionManager election = myRemote.getElection();
+                        
+                StringBuilder txt = new StringBuilder();
+
+                //adicionar a eleição
+                txt.append(":::::::::::::::::\n");
+                txt.append("Nome de eleição: " + election.getElection().getName()).append("\n");
+                txt.append("Data de inicio: " + election.getElection().getStartDate()).append("\n");
+                txt.append("Data de fim: " + election.getElection().getEndDate()).append("\n");
+                txt.append("Eleição já começou: " + election.electionStarted()).append("\n");
+
+                txtElection.setText(txt.toString());
+            }
+        }catch(RemoteException e){
+            System.out.println("Erro a listar detalhes");
+        }
+    }//GEN-LAST:event_lstElectionValueChanged
 
     /**
      * @param args the command line arguments
@@ -831,7 +851,7 @@ public class GUIServer extends javax.swing.JFrame implements MiningListener {
     private javax.swing.JList<String> lstBlockchain;
     private javax.swing.JList<String> lstBlockchain1;
     private javax.swing.JList<String> lstCandidates;
-    private javax.swing.JList<String> lstElections;
+    private javax.swing.JList<String> lstElection;
     private javax.swing.JList<String> lstElectors;
     private javax.swing.JList<String> lstTransactions;
     private javax.swing.JPanel pnBlochchain;
@@ -868,7 +888,7 @@ public class GUIServer extends javax.swing.JFrame implements MiningListener {
     private javax.swing.JTextArea txtBlockchain1;
     private javax.swing.JTextArea txtCandidates;
     private javax.swing.JTextArea txtData;
-    private javax.swing.JTextArea txtElections;
+    private javax.swing.JTextArea txtElection;
     private javax.swing.JTextArea txtElectors;
     private javax.swing.JPanel txtField;
     private javax.swing.JPanel txtField1;
@@ -1079,5 +1099,24 @@ public class GUIServer extends javax.swing.JFrame implements MiningListener {
         GuiUtils.addText(txtLog, title, desc, Color.yellow, Color.ORANGE);
                 
      }
+
+    @Override
+    public void onUpdateElection() {
+        EventQueue.invokeLater(() -> {
+            try {
+                //atualizar a lista
+                DefaultListModel<String> model = new DefaultListModel<>();
+                
+                model.addElement(myRemote.getElection().getElection().getName());
+                
+                lstElection.setModel(model);
+                //selecionar o último bloco
+                lstElection.setSelectedValue(0, true);
+                tpMain.setSelectedComponent(pnElection);
+            } catch (RemoteException ex) {
+                onException("onReceiveElection", ex);
+            }
+        });
+    }
 
 }

@@ -40,6 +40,7 @@ public class GUIConfig extends javax.swing.JFrame {
     RemoteInterface remote;
     Candidates candidates;
     Electors electors;
+    ElectionManager election;
     
     private void updateGUILists() {
         MainUtils.listaGUIElector.removeAllElements();
@@ -53,27 +54,28 @@ public class GUIConfig extends javax.swing.JFrame {
         }
     }
     
-    private void updateTextBoxes() {
-         GUIConfigTxtBoxElectionName.setText(ElectionManager.getElection().getName());
-        GUIConfigTxtBoxElectionStartDate.setText(ElectionManager.getElection().getStartDate());
-        GUIConfigTxtBoxElectionEndDate.setText(ElectionManager.getElection().getEndDate());
+    private void updateTextBoxes(ElectionManager election) {
+        GUIConfigTxtBoxElectionName.setText(election.getElection().getName());
+        GUIConfigTxtBoxElectionStartDate.setText(election.getElection().getStartDate());
+        GUIConfigTxtBoxElectionEndDate.setText(election.getElection().getEndDate());
     }
 
     /**
      * Creates new form GUIConfig
      * @throws java.lang.Exception
      */
-    public GUIConfig(Candidates candidates, Electors electors, RemoteInterface remote) throws Exception {
+    public GUIConfig(Candidates candidates, Electors electors, RemoteInterface remote, ElectionManager election) throws Exception {
         initComponents();
         this.candidates = candidates;
         this.electors = electors;
         this.remote = remote;
+        this.election = election;
         
         GUIConfigJListElector.setModel(MainUtils.listaGUIElector);
         GUIConfigJListCandidate.setModel(MainUtils.listaGUICandidate);
         
-        if(ElectionManager.getElection()!=null){
-           updateTextBoxes();
+        if(election.getElection()!=null){
+           updateTextBoxes(election);
            updateGUILists();
         }
       
@@ -561,32 +563,33 @@ public class GUIConfig extends javax.swing.JFrame {
                 LocalDate todayDate = LocalDate.now();
                 
                 if(todayDate.isAfter(initDate) && todayDate.isBefore(endDate)){
-                    ElectionManager.getElection().setStartDate(initDate);
-                    ElectionManager.getElection().setEndDate(endDate);
+                    election.getElection().setStartDate(initDate);
+                    election.getElection().setEndDate(endDate);
                 }else{
                     JOptionPane.showMessageDialog(Exception, Errors.ElectionDatesWrong.getErro(), Constants.exceptionDialogPopUpTitle, JOptionPane.OK_OPTION);
                     throw new Exception();
                 }
-                ElectionManager electionManager = new ElectionManager();
-
-                ElectionManager.updateBeanLists(candidates, electors);
+                
+                election.updateBeanLists(candidates, electors);
 
                 if(GUIConfigTxtBoxElectionName.getText().toCharArray().length<Constants.maxSizeForTextBox){
-                    ElectionManager.getElection().setName(GUIConfigTxtBoxElectionName.getText());
+                    election.getElection().setName(GUIConfigTxtBoxElectionName.getText());
                 }else{
                     JOptionPane.showMessageDialog(Exception, Errors.MoreThan50Chars.getErro(), Constants.exceptionDialogPopUpTitle, JOptionPane.OK_OPTION);
                     throw new Exception();
                 }
 
-                ElectionManager.getElection().setStarted(true);
-                ElectionManager.addBlankCandidate();
+                election.getElection().setStarted(true);
+                election.addBlankCandidate();
                 electors.resetElectorsVoted();
                 updateGUILists();
 
-                electionManager.save(Constants.electionFilePath);
+                election.save(Constants.electionFilePath);
 
+                //Remote operations
                 remote.addCandidates(candidates.getList());
                 remote.addElectors(electors.getList());
+                remote.addElection(election);
                 
                 dispose();
             }else{
@@ -610,18 +613,17 @@ public class GUIConfig extends javax.swing.JFrame {
        
         try{
             
-                ElectionManager.getElection().setStartDate(LocalDate.parse(GUIConfigTxtBoxElectionStartDate.getText(), MainUtils.formatter));
-                ElectionManager.getElection().setEndDate(LocalDate.parse(GUIConfigTxtBoxElectionEndDate.getText(), MainUtils.formatter));
-                ElectionManager.getElection().setName(GUIConfigTxtBoxElectionName.getText());
-                ElectionManager.updateBeanLists(candidates, electors);
+                election.getElection().setStartDate(LocalDate.parse(GUIConfigTxtBoxElectionStartDate.getText(), MainUtils.formatter));
+                election.getElection().setEndDate(LocalDate.parse(GUIConfigTxtBoxElectionEndDate.getText(), MainUtils.formatter));
+                election.getElection().setName(GUIConfigTxtBoxElectionName.getText());
+                election.updateBeanLists(candidates, electors);
 
                 JFileChooser fileChooser = new JFileChooser();
-                ElectionManager electionManager = new ElectionManager();
                 fileChooser.setCurrentDirectory(new File(System.getProperty(Constants.userSystemDir)));
                 int result = fileChooser.showOpenDialog(fileChooser);
                 if (result == JFileChooser.APPROVE_OPTION) {
                     String selectedFile = fileChooser.getSelectedFile().getAbsolutePath();
-                    electionManager.save(selectedFile);
+                    election.save(selectedFile);
                 }
             
         }catch(DateTimeParseException e){
@@ -647,23 +649,22 @@ public class GUIConfig extends javax.swing.JFrame {
 
     private void GUIConfigBtnNewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_GUIConfigBtnNewActionPerformed
         // TODO add your handling code here:
-        ElectionManager.newElection(candidates, electors);
+        election.newElection(candidates, electors);
         updateGUILists();
-        updateTextBoxes();
+        updateTextBoxes(election);
     }//GEN-LAST:event_GUIConfigBtnNewActionPerformed
 
     private void GUIConfigBtnOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_GUIConfigBtnOpenActionPerformed
         // TODO add your handling code here:
          try {
             JFileChooser fileChooser = new JFileChooser();
-            ElectionManager electionManager = new ElectionManager();
             fileChooser.setCurrentDirectory(new File(System.getProperty(Constants.userSystemDir)));
             int result = fileChooser.showOpenDialog(fileChooser);
             if (result == JFileChooser.APPROVE_OPTION) {
                 String selectedFile = fileChooser.getSelectedFile().getAbsolutePath();
-                electionManager.load(selectedFile);
+                election.load(selectedFile);
                 updateGUILists();
-                updateTextBoxes();
+                updateTextBoxes(election);
             }
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(Exception, Errors.FileManipulation.getErro(), Constants.exceptionDialogPopUpTitle, JOptionPane.OK_OPTION);
@@ -770,7 +771,7 @@ public class GUIConfig extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> {
             try {
-                new GUIConfig(candidates, electors, remote).setVisible(true);
+                new GUIConfig(candidates, electors, remote, election).setVisible(true);
             } catch (Exception ex) {
                 Logger.getLogger(GUIConfig.class.getName()).log(Level.SEVERE, null, ex);
             }

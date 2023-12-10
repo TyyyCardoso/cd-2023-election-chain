@@ -16,8 +16,8 @@ import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  *
@@ -25,17 +25,27 @@ import java.util.List;
  */
 public class ElectionManager implements FileManager, Serializable {
 
-    private static ElectionBean election;
+    private ElectionBean election;
 
-    public static ElectionBean getElection() {
+    public ElectionManager(Candidates candidates, Electors electors) {
+        election = new ElectionBean(candidates, electors);
+    }
+    
+    public ElectionBean getElection() {
         return election;
     }
     
-    public static boolean electionStarted(){
+     
+    public void setElection(ElectionBean election) {
+        this.election = election;
+    }
+    
+    
+    public boolean electionStarted(){
         return election.isStarted();
     }
     
-    public static void addBlankCandidate(){
+    public void addBlankCandidate(){
         for(CandidateBean candidate : election.getCandidateList())
             if(candidate.getName().equals(Constants.blankCandidateName)){
                 election.getCandidateList().remove(candidate);
@@ -44,7 +54,7 @@ public class ElectionManager implements FileManager, Serializable {
         election.getCandidateList().add(new CandidateBean(Constants.blankCandidateName, Constants.blankCandidateName));  
     }
 
-    public static void newElection(Candidates candidates, Electors electors) {
+    public void newElection(Candidates candidates, Electors electors) {
         candidates.resetAllCandidateVotes();
         electors.resetElectorsVoted();
         candidates = new Candidates();
@@ -52,7 +62,7 @@ public class ElectionManager implements FileManager, Serializable {
         election = new ElectionBean(candidates, electors);
     }
 
-    public static void updateBeanLists(Candidates candidates, Electors electors) {
+    public void updateBeanLists(Candidates candidates, Electors electors) {
         election.setCandidateList(candidates.getList());
         election.setElectorList(electors.getList());
     }
@@ -64,6 +74,24 @@ public class ElectionManager implements FileManager, Serializable {
         }
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        ElectionManager newElection = (ElectionManager) obj;
+        
+        if(newElection.getElection().getName().equals(election.getName())){
+            if(newElection.getElection().getStartDate().equals(election.getStartDate())){
+                if(newElection.getElection().getEndDate().equals(election.getEndDate())){
+                    if(newElection.getElection().getCandidateList().size()==election.getCandidateList().size()){
+                        if(newElection.getElection().getElectorList().size()==election.getElectorList().size()){
+                            return true;
+                        }
+                    }
+                }
+            }
+        }  
+        return false;
+    }
+    
     @Override
     public void load(String nomeFicheiro, Candidates candidates, Electors electors) throws Exception {
         if (new File(nomeFicheiro).exists()) {
