@@ -16,7 +16,7 @@
 package gui;
 
 import distributed.RemoteObject;
-import beans.votes.Vote;
+import beans.votes.VoteBean;
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.rmi.RemoteException;
@@ -362,7 +362,7 @@ public class GUIServer extends javax.swing.JFrame implements MiningListener {
         pnLabelLeft.setLayout(new java.awt.BorderLayout());
 
         jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel6.setText("Transactions");
+        jLabel6.setText("Votes");
         jLabel6.setPreferredSize(new java.awt.Dimension(200, 16));
         pnLabelLeft.add(jLabel6, java.awt.BorderLayout.NORTH);
 
@@ -406,7 +406,7 @@ public class GUIServer extends javax.swing.JFrame implements MiningListener {
 
         pnTransaction.add(pnBlockchianTop, java.awt.BorderLayout.CENTER);
 
-        tpMain.addTab("Transactions", pnTransaction);
+        tpMain.addTab("Votes", pnTransaction);
 
         pnBlochchain.setLayout(new java.awt.BorderLayout());
 
@@ -680,7 +680,7 @@ public class GUIServer extends javax.swing.JFrame implements MiningListener {
             //iterar as transações
             for (String string : lst) {
                 //converter transacoes para tranfer
-                Vote t = (Vote) Serializer.base64ToObject(string);
+                VoteBean t = (VoteBean) Serializer.base64ToObject(string);
                 //adicionar a transfer
                 txt.append("\n:::::::::::::::::\n");
                 txt.append(t.toString()).append("\n");
@@ -693,7 +693,7 @@ public class GUIServer extends javax.swing.JFrame implements MiningListener {
         //se estiver algo selecionado
         if (lstTransactions.getSelectedIndex() >= 0) {
             //apresentar a transação
-            Vote t = Vote.fromText(lstTransactions.getSelectedValue());
+            VoteBean t = VoteBean.fromText(lstTransactions.getSelectedValue());
             txtTransaction.setText(t.toString());
         }
     }//GEN-LAST:event_lstTransactionsValueChanged
@@ -704,7 +704,7 @@ public class GUIServer extends javax.swing.JFrame implements MiningListener {
         try {
             node = (RemoteInterface) RMI.getRemote(txtNodeAdress.getText());
             myRemote.addNode(node);
-            myRemote.synchonizeTransactions(node.getTransactionsList());
+            myRemote.synchonizeVotes(node.getVotesList());
             myRemote.synchonizeBlockchain(node);
             myRemote.synchonizeCandidates(node.getCandidateList());
             myRemote.synchonizeElectors(node.getElectorsList());
@@ -908,7 +908,7 @@ public class GUIServer extends javax.swing.JFrame implements MiningListener {
             setTitle(adress);
             onMessage("Server ready", adress);
             //atualizar as transacoes e a blockchain
-            onUpdateTransactions(null);
+            onUpdateVotes(null);
             onUpdateBlockchain();
         });
     }
@@ -994,15 +994,15 @@ public class GUIServer extends javax.swing.JFrame implements MiningListener {
     }
 
     @Override
-    public void onUpdateTransactions(String transaction) {
+    public void onUpdateVotes(String vote) {
         EventQueue.invokeLater(() -> {
             try {
                 //atualizar os elementos da lista
                 DefaultListModel<String> model = new DefaultListModel<>();
-                model.addAll(myRemote.getTransactionsList());
+                model.addAll(myRemote.getVotesList());
                 lstTransactions.setModel(model);
-                lstTransactions.setSelectedValue(transaction, true);
-                if (transaction != null) {
+                lstTransactions.setSelectedValue(vote, true);
+                if (vote != null) {
                     //selecionar a transaçao
                     tpMain.setSelectedComponent(pnTransaction);
                 }

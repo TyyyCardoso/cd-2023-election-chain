@@ -4,7 +4,7 @@
  */
 package gui;
 
-import beans.votes.Vote;
+import beans.votes.VoteBean;
 import beans.UserCredentials;
 import beans.candidate.CandidateBean;
 import beans.candidate.Candidates;
@@ -225,9 +225,9 @@ public class GUIUtilizador extends javax.swing.JFrame {
                     String candidateBean = candidates.getList().get(selections[0]).getName();
                     byte[] electorNameBytes = SecurityUtils.encrypt(utils.Converter.objectToByteArray(electorName), keys.getPubKey());
                     String finalElectorName = utils.Converter.byteArrayToHex(electorNameBytes);
-                    Vote vote = new Vote(finalElectorName, candidateBean);
+                    VoteBean vote = new VoteBean(finalElectorName, candidateBean);
                     vote.sign(keys.getPrivKey());
-                    remote.addTransaction(vote.toText());
+                    remote.addVote(vote.toText());
                 } catch (Exception ex) {
                     System.out.println("Exception: " + ex);
                 }

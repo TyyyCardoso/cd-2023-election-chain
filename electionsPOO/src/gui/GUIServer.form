@@ -531,8 +531,8 @@
         <Container class="javax.swing.JPanel" name="pnTransaction">
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-              <JTabbedPaneConstraints tabName="Transactions">
-                <Property name="tabTitle" type="java.lang.String" value="Transactions"/>
+              <JTabbedPaneConstraints tabName="Votes">
+                <Property name="tabTitle" type="java.lang.String" value="Votes"/>
               </JTabbedPaneConstraints>
             </Constraint>
           </Constraints>
@@ -558,7 +558,7 @@
                     <Component class="javax.swing.JLabel" name="jLabel6">
                       <Properties>
                         <Property name="horizontalAlignment" type="int" value="0"/>
-                        <Property name="text" type="java.lang.String" value="Transactions"/>
+                        <Property name="text" type="java.lang.String" value="Votes"/>
                         <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
                           <Dimension value="[200, 16]"/>
                         </Property>

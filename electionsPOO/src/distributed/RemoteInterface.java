@@ -22,6 +22,7 @@ import beans.blockchain.Block;
 import beans.blockchain.BlockChain;
 import beans.candidate.Candidates;
 import beans.candidate.CandidateBean;
+import beans.election.ElectionBean;
 import beans.elector.ElectorBean;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -68,14 +69,25 @@ public interface RemoteInterface extends Remote {
 
     //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     //:::::                                                         :::::::::::::
-    //:::::               TRANSACTIONS
+    //:::::               V O T E S
     //:::::                                                         :::::::::::::
     //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    public void addTransaction(String transaction) throws RemoteException;
+    public void addVote(String vote) throws RemoteException;
 
-    public void synchonizeTransactions(List<String> list) throws RemoteException;
+    public void synchonizeVotes(List<String> list) throws RemoteException;
 
-    public List<String> getTransactionsList() throws RemoteException;
+    public List<String> getVotesList() throws RemoteException;
+    
+    //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    //:::::                                                         :::::::::::::
+    //:::::               E L E C T I O N S
+    //:::::                                                         :::::::::::::
+    //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    public void addElection(ElectionBean vote) throws RemoteException;
+
+    public void synchonizeElections(List<String> list) throws RemoteException;
+
+    public List<String> getElectionList() throws RemoteException;
     
     //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     //:::::                                                         :::::::::::::

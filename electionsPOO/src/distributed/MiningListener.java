@@ -44,7 +44,7 @@ public interface MiningListener {
 
     public void onNounceFound(int nonce);
 
-    public void onUpdateTransactions(String transaction);
+    public void onUpdateVotes(String vote);
     
     public void onUpdateCandidates();
     

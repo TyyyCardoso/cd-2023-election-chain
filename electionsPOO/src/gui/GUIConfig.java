@@ -4,7 +4,7 @@
  */
 package gui;
 
-import beans.votes.Vote;
+import beans.votes.VoteBean;
 import beans.blockchain.Block;
 import beans.candidate.CandidateBean;
 import beans.candidate.Candidates;
@@ -721,7 +721,7 @@ public class GUIConfig extends javax.swing.JFrame {
                 }
                 List<String> transactionsList = (List<String>) Serializer.base64ToObject(block.getData()); 
                 for(String voteInfo : transactionsList){
-                    Vote vote = (Vote) Serializer.base64ToObject(voteInfo);
+                    VoteBean vote = (VoteBean) Serializer.base64ToObject(voteInfo);
                     int currentVotes = contagemVotos.get(vote.getTo());
                     currentVotes++;
                     contagemVotos.put(vote.getTo(), currentVotes);

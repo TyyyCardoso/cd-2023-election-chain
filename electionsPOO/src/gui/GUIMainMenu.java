@@ -37,6 +37,7 @@ public class GUIMainMenu extends javax.swing.JFrame {
         
         electionManager.load(Constants.electionFilePath, candidates, electors);
         
+        
         try {
             String ip = "//192.168.169.194:10010/RemoteMiner";
             remote = (RemoteInterface) RMI.getRemote(ip);

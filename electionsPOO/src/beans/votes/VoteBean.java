@@ -26,7 +26,7 @@ import utils.Serializer;
  *
  * @author manso
  */
-public class Vote implements Serializable {
+public class VoteBean implements Serializable {
 
     private String from;
     private String to; 
@@ -51,7 +51,7 @@ public class Vote implements Serializable {
         return SecurityUtils.verifySign(data, sign, pubKey);
     }
 
-    public Vote(String from, String to) {
+    public VoteBean(String from, String to) {
         this.from = from;
         this.to = to;
     }
@@ -84,8 +84,8 @@ public class Vote implements Serializable {
         return Serializer.objectToBase64(this);
     }
 
-    public static Vote fromText(String obj) {
-        return (Vote)Serializer.base64ToObject(obj);
+    public static VoteBean fromText(String obj) {
+        return (VoteBean)Serializer.base64ToObject(obj);
     }
 
     @Override
@@ -95,8 +95,8 @@ public class Vote implements Serializable {
 
     @Override
     public boolean equals(Object t) {
-        if (t instanceof Vote) {
-            return this.toText().equals(((Vote) t).toText());
+        if (t instanceof VoteBean) {
+            return this.toText().equals(((VoteBean) t).toText());
         }
         return false;
     }

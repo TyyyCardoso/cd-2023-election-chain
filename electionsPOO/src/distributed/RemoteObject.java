@@ -22,8 +22,9 @@ import beans.blockchain.BlockChain;
 import beans.blockchain.BlockchainException;
 import beans.candidate.Candidates;
 import beans.blockchain.consensus.LastBlock;
-import beans.votes.Transactions;
+import beans.votes.Votes;
 import beans.candidate.CandidateBean;
+import beans.election.ElectionBean;
 import beans.elector.ElectorBean;
 import beans.elector.Electors;
 import java.net.InetAddress;
@@ -47,7 +48,7 @@ public class RemoteObject extends UnicastRemoteObject implements RemoteInterface
 
     MiningListener listener;
     MinerP2P myMiner;
-    Transactions transactions;
+    Votes votes;
     Candidates candidates;
     Electors electors;
     
@@ -77,7 +78,7 @@ public class RemoteObject extends UnicastRemoteObject implements RemoteInterface
             //inicializar nova rede
             network = new CopyOnWriteArrayList<>();
             //inicializar novas transações
-            transactions = new Transactions();
+            votes = new Votes();
             this.miningBlock = new Block("dummy", "dummy", 1);
             //inicializar blockchain
             blockchain = new BlockChain();
@@ -220,46 +221,46 @@ public class RemoteObject extends UnicastRemoteObject implements RemoteInterface
     //:::::                                                         :::::::::::::
     //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     @Override
-    public void addTransaction(String transaction) throws RemoteException {
+    public void addVote(String vote) throws RemoteException {
         //se já tiver a transação não faz nada
-        if (this.transactions.contains(transaction)) {
-            listener.onMessage("Duplicated Transaction", transaction);
+        if (this.votes.contains(vote)) {
+            listener.onMessage("Duplicated Vote", vote);
             return;
         }
 
-        transactions.addTransaction(transaction);
-        listener.onUpdateTransactions(transaction);
+        votes.addVote(vote);
+        listener.onUpdateVotes(vote);
         listener.onMessage("addTransaction", getClientName());
         //se tiver mais de 2 transacoes e não estiver a minar
-        if (transactions.getList().size() >= 2 && !myMiner.isMining()) {
+        if (votes.getList().size() >= 2 && !myMiner.isMining()) {
             buildNewBlock();
         } else {
             //sincronizar a transacao
             for (RemoteInterface node : network) {
-                node.synchonizeTransactions(transactions.getList());
+                node.synchonizeVotes(votes.getList());
             }
         }
 
     }
 
     @Override
-    public List<String> getTransactionsList() throws RemoteException {
-        return transactions.getList();
+    public List<String> getVotesList() throws RemoteException {
+        return votes.getList();
     }
 
     @Override
-    public void synchonizeTransactions(List<String> list) throws RemoteException {
-        if (list.equals(transactions.getList())) {
+    public void synchonizeVotes(List<String> list) throws RemoteException {
+        if (list.equals(votes.getList())) {
             return;
         }
         for (String string : list) {
-            addTransaction(string);
+            addVote(string);
         }
         //mandar sincronizar a rede
         for (RemoteInterface node : network) {
-            node.synchonizeTransactions(transactions.getList());
+            node.synchonizeVotes(votes.getList());
         }
-        listener.onMessage("synchonizeTransactions", getClientName());
+        listener.onMessage("synchonizeVotes", getClientName());
 
     }
     //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -278,8 +279,8 @@ public class RemoteObject extends UnicastRemoteObject implements RemoteInterface
         this.miningBlock = newBlock;
         //Remover as transacoes
         List<String> lst = (List<String>) Serializer.base64ToObject(newBlock.getData());
-        this.transactions.removeTransactions(lst);
-        listener.onUpdateTransactions(null);
+        this.votes.removeVotes(lst);
+        listener.onUpdateVotes(null);
         //espalhar o bloco pela rede
         for (RemoteInterface node : network) {
             node.startMiningBlock(miningBlock);
@@ -290,7 +291,7 @@ public class RemoteObject extends UnicastRemoteObject implements RemoteInterface
 
     @Override
     public void buildNewBlock() throws RemoteException {
-        if (transactions.getList().size() < Transactions.MAXTRANSACTIONS) {
+        if (votes.getList().size() < Votes.MAXVOTES) {
             return;
         }
         listener.onUpdateBlockchain();
@@ -304,7 +305,7 @@ public class RemoteObject extends UnicastRemoteObject implements RemoteInterface
         String lastHash = new LastBlock(this).getLastBlock().getHash();
 
         //dados do bloco são as lista de transaçoes 
-        String data = Serializer.objectToBase64(transactions.getList());
+        String data = Serializer.objectToBase64(votes.getList());
 
         //Construir um novo bloco logado ao último
         Block newBlock = new Block(data, lastHash, Block.DIFICULTY); 
@@ -510,6 +511,21 @@ public class RemoteObject extends UnicastRemoteObject implements RemoteInterface
     @Override
     public List<ElectorBean> getElectorsList() throws RemoteException {
         return electors.getList();
+    }
+
+    @Override
+    public void addElection(ElectionBean vote) throws RemoteException {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void synchonizeElections(List<String> list) throws RemoteException {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public List<String> getElectionList() throws RemoteException {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
 

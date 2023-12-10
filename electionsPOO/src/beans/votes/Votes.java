@@ -24,13 +24,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @author IPT - computer
  * @version 1.0
  */
-public class Transactions {
+public class Votes {
 
-    public static int MAXTRANSACTIONS = 2;
+    public static int MAXVOTES = 2;
 
     private final List<String> list; // list not mined
 
-    public Transactions() {
+    public Votes() {
         list = new CopyOnWriteArrayList<>();
     }
 
@@ -38,23 +38,23 @@ public class Transactions {
         return list;
     }
 
-    public boolean contains(String trans) {
-        return list.contains(trans);
+    public boolean contains(String vote) {
+        return list.contains(vote);
     }
 
-    public void addTransaction(String newTrans) {
-        if (!list.contains(newTrans)) {
-            list.add(newTrans);
+    public void addVote(String newVote) {
+        if (!list.contains(newVote)) {
+            list.add(newVote);
         }
     }
 
-    public void removeTransactions(List<String> lst) {
+    public void removeVotes(List<String> lst) {
         list.removeAll(lst);
     }
 
-    public void synchronize(List<String> other) {
-        for (String trans : other) {
-            addTransaction(trans);
+    public void synchronize(List<String> otherVotes) {
+        for (String vote : otherVotes) {
+            addVote(vote);
         }
     }
 
