@@ -48,12 +48,22 @@ public class GUIVote extends javax.swing.JDialog {
     public GUIVote(java.awt.Frame parent, boolean modal, RemoteInterface remote, Candidates candidates, Electors electors, ElectionManager election) throws Exception {
         super(parent, modal);
         initComponents();
+        
+       
       
         this.remote = remote;
         this.keys = keys;
-        this.electors = electors;
-        this.candidates = candidates;
-        this.election = election;
+        //this.electors = electors;
+         System.out.println("USING ELECTORS FROM REMOTE");
+        this.electors = new Electors();
+        this.electors.setList(remote.getElectorsList());
+      
+        //this.candidates = candidates;
+        System.out.println("USING CANDIDATES FROM REMOTE"); 
+        this.candidates = new Candidates();
+        this.candidates.setList(remote.getCandidateList());
+        //this.election = election;
+        this.election = remote.getElection();
         
         election.save(Constants.electionFilePath);
         

@@ -28,7 +28,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class Candidates implements FileManager{
 
     //Attributes
-    private final List<CandidateBean> list;
+    private List<CandidateBean> list;
     
     public Candidates() {
         list = new CopyOnWriteArrayList<>();
@@ -37,6 +37,10 @@ public class Candidates implements FileManager{
     //Getters and Setters
     public List<CandidateBean> getList(){
         return list;
+    }
+    
+     public void setList(List<CandidateBean> listP){
+        list = listP;
     }
     
     

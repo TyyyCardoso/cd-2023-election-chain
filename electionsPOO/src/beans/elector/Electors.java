@@ -26,7 +26,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class Electors implements FileManager {
  
     //Attributes
-    private final List<ElectorBean> list;
+    private List<ElectorBean> list;
     
     public Electors() {
         list = new CopyOnWriteArrayList<>();
@@ -35,6 +35,10 @@ public class Electors implements FileManager {
     //Getters and Setters
     public List<ElectorBean> getList(){
         return list;
+    }
+    
+    public void setList(List<ElectorBean> listP){
+        list = listP;
     }
     
     public boolean contains(ElectorBean elec) {
