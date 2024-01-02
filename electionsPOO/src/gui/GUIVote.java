@@ -5,20 +5,27 @@
 package gui;
 
 import beans.UserCredentials;
+import beans.blockchain.Block;
 import beans.candidate.Candidates;
 import beans.election.ElectionManager;
 import beans.elector.Electors;
+import beans.votes.VoteBean;
 import distributed.RemoteInterface;
+import static gui.GUIUtilizador.keys;
 import utils.Constants;
 import utils.MainUtils;
 import utils.enums.Errors;
 import java.io.File;
 import java.io.IOException;
+import java.util.Base64;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import utils.SecurityUtils;
+import utils.Serializer;
 
 /**
  *
@@ -106,6 +113,9 @@ public class GUIVote extends javax.swing.JDialog {
         GuiVoteEleicaoDataFim = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
         jButton2 = new javax.swing.JButton();
+        jPanel4 = new javax.swing.JPanel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        ResultadosTexto = new javax.swing.JTextPane();
 
         Exception.setAlwaysOnTop(true);
 
@@ -121,6 +131,20 @@ public class GUIVote extends javax.swing.JDialog {
         );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+
+        jTabbedPane1.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                jTabbedPane1FocusGained(evt);
+            }
+        });
+        jTabbedPane1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                jTabbedPane1MouseEntered(evt);
+            }
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                jTabbedPane1MousePressed(evt);
+            }
+        });
 
         GUIVoteCCElector.setBorder(javax.swing.BorderFactory.createTitledBorder("Cartão de Cidadão"));
         GUIVoteCCElector.addActionListener(new java.awt.event.ActionListener() {
@@ -299,6 +323,28 @@ public class GUIVote extends javax.swing.JDialog {
 
         jTabbedPane1.addTab("Eleição", jPanel3);
 
+        ResultadosTexto.setBorder(javax.swing.BorderFactory.createTitledBorder("Resultados"));
+        jScrollPane2.setViewportView(ResultadosTexto);
+
+        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
+        jPanel4.setLayout(jPanel4Layout);
+        jPanel4Layout.setHorizontalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 410, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        jPanel4Layout.setVerticalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addGap(20, 20, 20)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 369, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(185, Short.MAX_VALUE))
+        );
+
+        jTabbedPane1.addTab("Resultado", jPanel4);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -307,7 +353,7 @@ public class GUIVote extends javax.swing.JDialog {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 609, Short.MAX_VALUE)
+            .addComponent(jTabbedPane1)
         );
 
         pack();
@@ -416,38 +462,177 @@ public class GUIVote extends javax.swing.JDialog {
         String electorPassword = electors.getList().get(index).getPassword();
         String userInputPassword = GuiVotePassword.getText();
         
-        if(election.electionStarted()){
-            if(!electors.getList().get(index).isVoted()){
-                if(electorPassword.equals(userInputPassword)){
-                    try {
-                        // TODO add your handling code here:
-                        String userName = electors.getList().get(index).getName();
-                        
-                        UserCredentials keys = null;
-                        
-                         //Atribuir chaves se for a primeira vez a fazer login
-                         try{
-                             keys = UserCredentials.autenticar(userName, userInputPassword);
-                         }catch(Exception e){
-                             if(e.getMessage().startsWith("user")){
-                                keys = UserCredentials.registar(userName, userInputPassword);
+        try{
+            if(!remote.getElectionState()){
+                //if(!electors.getList().get(index).isVoted()){
+                    if(electorPassword.equals(userInputPassword)){
+                        try {
+                            // TODO add your handling code here:
+                            String userName = electors.getList().get(index).getName();
+
+                            UserCredentials keys = null;
+
+                            //Atribuir chaves se for a primeira vez a fazer login
+                            try{
+                                keys = UserCredentials.autenticar(userName, userInputPassword);
+
+                                List<Block> blockchain = remote.getBlockchain().getChain();
+                                List<String> votesList = remote.getVotesList();
+
+                                boolean isFirst = true;
+
+                                for(Block block : blockchain){
+                                    if(isFirst){
+                                        isFirst = false;
+                                        continue;
+                                    }
+                                    List<String> transactionsList = (List<String>) Serializer.base64ToObject(block.getData()); 
+                                    for(String voteInfo : transactionsList){
+                                        VoteBean vote = (VoteBean) Serializer.base64ToObject(voteInfo);
+
+                                        byte[] bytesFrom = Base64.getDecoder().decode(vote.getFrom());
+
+                                        byte[] electorName = null;
+
+                                        try{
+                                            electorName = SecurityUtils.decrypt(bytesFrom, keys.getPrivKey());
+                                        }catch(Exception e){
+                                            e.printStackTrace();
+                                            continue;
+                                        }
+                                        String elector = Base64.getEncoder().encodeToString(electorName);
+
+                                        byte[] userNameLogged = userName.getBytes();
+                                        userName = Base64.getEncoder().encodeToString(userNameLogged);
+
+                                        if(elector.equals(userName)){
+                                            
+                                            JOptionPane.showMessageDialog(Exception, Errors.AlreadyVoted.getErro(), Constants.exceptionDialogPopUpTitle, JOptionPane.OK_OPTION);
+                                            
+                                            int response = JOptionPane.showConfirmDialog(
+                                                    null, // parentComponent - pode ser 'null' se você não tem um componente pai
+                                                    Errors.CheckVote.getErro(), // mensagem
+                                                    Constants.exceptionDialogPopUpTitle, // título
+                                                    JOptionPane.OK_CANCEL_OPTION, // opções de botão
+                                                    JOptionPane.INFORMATION_MESSAGE // tipo de mensagem
+                                            );
+                                            
+                                            // Lida com a resposta
+                                            if (response == JOptionPane.OK_OPTION) {
+                                                JOptionPane.showMessageDialog(Exception, "Você votou em " + vote.getTo(), Constants.infoDialogPopUpTitle, JOptionPane.OK_OPTION);
+                                            } else if (response == JOptionPane.CANCEL_OPTION) {
+                                                System.out.println("Botão Cancel pressionado");
+                                            } else {
+                                                System.out.println("Nenhuma opção selecionada");
+                                            }
+                                            
+                                            return;
+
+                                        }
+
+                                    }
+                                }
+
+                                for(String vote : votesList){
+                                    VoteBean voteBean = (VoteBean) Serializer.base64ToObject(vote);
+
+                                    String from = voteBean.getFrom();
+                                    byte[] bytesFrom = Base64.getDecoder().decode(from);
+
+                                    byte[] electorName = null;
+
+                                    try{
+                                       electorName = SecurityUtils.decrypt(bytesFrom, keys.getPrivKey());
+                                    }catch(Exception e){
+                                        e.printStackTrace();
+                                       continue;
+                                    }
+
+
+                                    String elector = Base64.getEncoder().encodeToString(electorName);
+
+                                    byte[] userNameLogged = userName.getBytes();
+                                    userName = Base64.getEncoder().encodeToString(userNameLogged);
+
+                                    if(elector.equals(userName)){
+                                         
+                                        JOptionPane.showMessageDialog(Exception, Errors.AlreadyVoted.getErro(), Constants.exceptionDialogPopUpTitle, JOptionPane.OK_OPTION);
+                                        
+                                        
+                                        int response = JOptionPane.showConfirmDialog(
+                                                null, // parentComponent - pode ser 'null' se você não tem um componente pai
+                                                Errors.CheckVote.getErro(), // mensagem
+                                                Constants.exceptionDialogPopUpTitle, // título
+                                                JOptionPane.OK_CANCEL_OPTION, // opções de botão
+                                                JOptionPane.INFORMATION_MESSAGE // tipo de mensagem
+                                        );
+
+                                        // Lida com a resposta
+                                        if (response == JOptionPane.OK_OPTION) {
+                                            JOptionPane.showMessageDialog(Exception, "Você votou em " + voteBean.getTo(), Constants.infoDialogPopUpTitle, JOptionPane.OK_OPTION);
+                                        } else if (response == JOptionPane.CANCEL_OPTION) {
+                                            System.out.println("Botão Cancel pressionado");
+                                        } else {
+                                            System.out.println("Nenhuma opção selecionada");
+                                        }
+                                        return;
+                                    }
+                                }   
+
+                             }catch(Exception e){
+                                 e.printStackTrace();
+                                 if(e.getMessage().startsWith("user")){
+                                    try{     
+                                        keys = UserCredentials.registar(userName, userInputPassword);
+                                    }catch(Exception ex){
+                                       Logger.getLogger(GUIMainMenu.class.getName()).log(Level.SEVERE, null, ex);
+                                    }
+                                 }
                              }
-                         }
-                        
-                        GUIUtilizador dialog = new GUIUtilizador(electors.getList().get(index), remote, keys, candidates, electors, election);
-                        dialog.setVisible(true);
-                        dispose();
-                    } catch (Exception ex) {
-                        Logger.getLogger(GUIMainMenu.class.getName()).log(Level.SEVERE, null, ex);
+
+                            GUIUtilizador dialog = new GUIUtilizador(electors.getList().get(index), remote, keys, candidates, electors, election);
+                            dialog.setVisible(true);
+                            dispose();
+
+                        } catch (Exception ex) {
+                            Logger.getLogger(GUIMainMenu.class.getName()).log(Level.SEVERE, null, ex);
+                        }
                     }
-                }
+                /*}else{
+                    JOptionPane.showMessageDialog(Exception, Errors.AlreadyVoted.getErro(), Constants.exceptionDialogPopUpTitle, JOptionPane.OK_OPTION);
+                }*/
             }else{
-                JOptionPane.showMessageDialog(Exception, Errors.AlreadyVoted.getErro(), Constants.exceptionDialogPopUpTitle, JOptionPane.OK_OPTION);
+                JOptionPane.showMessageDialog(Exception, Errors.ElectionNotStarted.getErro(), Constants.exceptionDialogPopUpTitle, JOptionPane.OK_OPTION);
             }
-        }else{
-            JOptionPane.showMessageDialog(Exception, Errors.ElectionNotStarted.getErro(), Constants.exceptionDialogPopUpTitle, JOptionPane.OK_OPTION);
+        }catch(Exception e){
+            e.printStackTrace();
         }
+        
     }//GEN-LAST:event_GuiVotePasswordActionPerformed
+
+    private void jTabbedPane1MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTabbedPane1MouseEntered
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTabbedPane1MouseEntered
+
+    private void jTabbedPane1FocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTabbedPane1FocusGained
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTabbedPane1FocusGained
+
+    private void jTabbedPane1MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTabbedPane1MousePressed
+        // TODO add your handling code here:
+        try{
+            String result = remote.getElectionResult();
+   
+            if(result.isEmpty()){
+                ResultadosTexto.setText("Aguarde a eleição terminar para consultar os resultados!");
+            }else{
+                ResultadosTexto.setText(result);
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+ 
+    }//GEN-LAST:event_jTabbedPane1MousePressed
 
     /**
      * @param args the command line arguments
@@ -507,6 +692,7 @@ public class GUIVote extends javax.swing.JDialog {
     private javax.swing.JTextField GuiVotePassword;
     private javax.swing.JTextField GuiVoteSearchField;
     private javax.swing.JLabel InfoLabelAboutElector;
+    private javax.swing.JTextPane ResultadosTexto;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
@@ -514,7 +700,9 @@ public class GUIVote extends javax.swing.JDialog {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTabbedPane jTabbedPane1;
     // End of variables declaration//GEN-END:variables
 }

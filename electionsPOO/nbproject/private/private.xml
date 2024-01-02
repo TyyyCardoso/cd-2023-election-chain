@@ -2,21 +2,6 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group>
-            <file>file:/C:/Users/tiago/OneDrive/Desktop/Tiago/IPT/Engenharia%20Informática/3º%20Ano/Computação%20Distribuída/Elections-BlockChain/cd-2023-election-chain/electionsPOO/src/electionspoo/gui/GUIElector.java</file>
-            <file>file:/C:/Users/tiago/OneDrive/Desktop/Tiago/IPT/Engenharia%20Informática/3º%20Ano/Computação%20Distribuída/Elections-BlockChain/cd-2023-election-chain/electionsPOO/src/electionspoo/gui/GUIResultsStatistics.java</file>
-            <file>file:/C:/Users/tiago/OneDrive/Desktop/Tiago/IPT/Engenharia%20Informática/3º%20Ano/Computação%20Distribuída/Elections-BlockChain/cd-2023-election-chain/electionsPOO/src/electionspoo/gui/GUIResults.java</file>
-            <file>file:/C:/Users/tiago/OneDrive/Desktop/Tiago/IPT/Engenharia%20Informática/3º%20Ano/Computação%20Distribuída/Elections-BlockChain/cd-2023-election-chain/electionsPOO/src/electionspoo/beans/elector/ElectorBean.java</file>
-            <file>file:/C:/Users/tiago/OneDrive/Desktop/Tiago/IPT/Engenharia%20Informática/3º%20Ano/Computação%20Distribuída/Elections-BlockChain/cd-2023-election-chain/electionsPOO/src/distributedMiner/RemoteObject.java</file>
-            <file>file:/C:/Users/tiago/OneDrive/Desktop/Tiago/IPT/Engenharia%20Informática/3º%20Ano/Computação%20Distribuída/Elections-BlockChain/cd-2023-election-chain/electionsPOO/src/electionspoo/gui/GUIConfig.java</file>
-            <file>file:/C:/Users/tiago/OneDrive/Desktop/Tiago/IPT/Engenharia%20Informática/3º%20Ano/Computação%20Distribuída/Elections-BlockChain/cd-2023-election-chain/electionsPOO/src/electionspoo/gui/GUIMainMenu.java</file>
-            <file>file:/C:/Users/tiago/OneDrive/Desktop/Tiago/IPT/Engenharia%20Informática/3º%20Ano/Computação%20Distribuída/Elections-BlockChain/cd-2023-election-chain/electionsPOO/src/electionspoo/gui/GUIUtilizador.java</file>
-            <file>file:/C:/Users/tiago/OneDrive/Desktop/Tiago/IPT/Engenharia%20Informática/3º%20Ano/Computação%20Distribuída/Elections-BlockChain/cd-2023-election-chain/electionsPOO/src/electionspoo/gui/GUIVote.java</file>
-            <file>file:/C:/Users/tiago/OneDrive/Desktop/Tiago/IPT/Engenharia%20Informática/3º%20Ano/Computação%20Distribuída/Elections-BlockChain/cd-2023-election-chain/electionsPOO/src/distributedMiner/MiningListener.java</file>
-            <file>file:/C:/Users/tiago/OneDrive/Desktop/Tiago/IPT/Engenharia%20Informática/3º%20Ano/Computação%20Distribuída/Elections-BlockChain/cd-2023-election-chain/electionsPOO/src/distributedMiner/RemoteInterface.java</file>
-            <file>file:/C:/Users/tiago/OneDrive/Desktop/Tiago/IPT/Engenharia%20Informática/3º%20Ano/Computação%20Distribuída/Elections-BlockChain/cd-2023-election-chain/electionsPOO/src/distributedMiner/gui/ServerMiner.java</file>
-            <file>file:/C:/Users/tiago/OneDrive/Desktop/Tiago/IPT/Engenharia%20Informática/3º%20Ano/Computação%20Distribuída/Elections-BlockChain/cd-2023-election-chain/electionsPOO/src/distributedMiner/blockchain/Block.java</file>
-            <file>file:/C:/Users/tiago/OneDrive/Desktop/Tiago/IPT/Engenharia%20Informática/3º%20Ano/Computação%20Distribuída/Elections-BlockChain/cd-2023-election-chain/electionsPOO/src/distributedMiner/blockchain/BlockChain.java</file>
-        </group>
+        <group/>
     </open-files>
 </project-private>

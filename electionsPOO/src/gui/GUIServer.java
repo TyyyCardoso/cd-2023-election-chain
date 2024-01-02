@@ -762,7 +762,13 @@ public class GUIServer extends javax.swing.JFrame implements MiningListener {
                 txt.append("Data de inicio: " + election.getElection().getStartDate()).append("\n");
                 txt.append("Data de fim: " + election.getElection().getEndDate()).append("\n");
                 txt.append("Eleição já começou: " + election.electionStarted()).append("\n");
-
+                txt.append("Eleição já acabou: " + myRemote.getElectionState()).append("\n");
+                txt.append("Resultado: ").append("\n");
+                if(!myRemote.getElectionResult().isEmpty())
+                    txt.append(myRemote.getElectionResult()).append("\n");
+                else
+                    txt.append("Espere a eleição terminar para ver os resultados!").append("\n");
+                
                 txtElection.setText(txt.toString());
             }
         }catch(RemoteException e){

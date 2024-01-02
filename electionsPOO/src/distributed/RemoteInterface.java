@@ -90,6 +90,18 @@ public interface RemoteInterface extends Remote {
 
     public ElectionManager getElection() throws RemoteException;
     
+    public void endElection() throws RemoteException;
+    
+    public boolean getElectionState() throws RemoteException;
+    
+    public void synchonizeElectionState() throws RemoteException;
+    
+    public void setElectionResult(String electionResult) throws RemoteException;
+    
+    public String getElectionResult() throws RemoteException;
+    
+    public void synchonizeElectionResult(String electionResult) throws RemoteException;
+    
     //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     //:::::                                                         :::::::::::::
     //:::::                    C A N D I D A T E S

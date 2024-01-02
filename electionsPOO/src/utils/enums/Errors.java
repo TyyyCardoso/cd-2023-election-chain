@@ -10,9 +10,10 @@ package utils.enums;
  */
 public enum Errors {
     
-    ElectionNotStarted("Esta eleição ainda não foi iniciada, por favor inicie para poder votar!"),
+    ElectionNotStarted("Esta eleição já acabou, não pode votar mais!"),
     EmptyLists("As listas de eleitores ou candidatos não podem estar vazias!"),
-    AlreadyVoted("Este eleitor já votou!"),
+    AlreadyVoted("Você já votou!"),
+    CheckVote("Quer validar em quem votou?"),
     MoreThan8Chars("Número de cartão de cidadão não pode ter menos que 8 caracteres!"),
     NumberFormatIncorret("Por favor insira um número válido!"),
     DateFormatIncorret("Ocorreu um erro na validação das datas, por favor, insira um formato válido. Exemplo: dd/mm/yyyy"),

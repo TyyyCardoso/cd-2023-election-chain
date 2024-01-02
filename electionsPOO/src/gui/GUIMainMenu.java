@@ -225,6 +225,7 @@ public class GUIMainMenu extends javax.swing.JFrame {
 
     private void MainMenuBtnVotarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MainMenuBtnVotarActionPerformed
         // TODO add your handling code here:
+        
         try {
             GUIVote dialog = new GUIVote(this, true, remote, candidates, electors, election);
             dialog.setVisible(true);

@@ -47,7 +47,7 @@ public class VoteBean implements Serializable {
         byte [] sign = Base64.getDecoder().decode(signature);
         //chave publica do from
         byte [] pk = Base64.getDecoder().decode(from);
-        PublicKey pubKey = SecurityUtils. getPublicKey(pk);
+        PublicKey pubKey = SecurityUtils.getPublicKey(pk);
         return SecurityUtils.verifySign(data, sign, pubKey);
     }
 

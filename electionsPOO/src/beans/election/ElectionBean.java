@@ -28,6 +28,7 @@ public class ElectionBean implements Serializable {
     private LocalDate startDate;
     private LocalDate endDate;
     private boolean started;
+    private boolean ended;
     
     public ElectionBean(Candidates candidates, Electors electors){
         this.name = "Eleicao Basica";
@@ -36,6 +37,7 @@ public class ElectionBean implements Serializable {
         this.startDate = LocalDate.parse("01/01/2022", MainUtils.formatter);
         this.endDate = LocalDate.parse("01/05/2022", MainUtils.formatter);
         this.started = false;
+        this.ended = false;
     }
     
     public ElectionBean(String name, ArrayList<ElectorBean> eleitores, ArrayList<CandidateBean> candidatos, LocalDate startDate, LocalDate endDate){
@@ -45,6 +47,7 @@ public class ElectionBean implements Serializable {
         this.startDate = startDate;
         this.endDate = endDate;
         this.started = false;
+        this.ended = false;
     }
 
     public String getName() {

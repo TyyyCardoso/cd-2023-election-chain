@@ -12,6 +12,7 @@ import beans.election.ElectionManager;
 import beans.elector.ElectorBean;
 import beans.elector.Electors;
 import distributed.RemoteInterface;
+import java.util.Base64;
 import utils.Constants;
 import utils.MainUtils;
 import utils.enums.Errors;
@@ -225,10 +226,19 @@ public class GUIUtilizador extends javax.swing.JFrame {
                 
                 try {
                     String electorName = electors.getList().get(i).getName();
-                    String candidateBean = candidates.getList().get(selections[0]).getName();
-                    byte[] electorNameBytes = SecurityUtils.encrypt(utils.Converter.objectToByteArray(electorName), keys.getPubKey());
+                    String candidateName = candidates.getList().get(selections[0]).getName();
+                    
+                    
+                   /* byte[] electorNameBytes = SecurityUtils.encrypt(utils.Converter.objectToByteArray(electorName), keys.getPubKey());
                     String finalElectorName = utils.Converter.byteArrayToHex(electorNameBytes);
-                    VoteBean vote = new VoteBean(finalElectorName, candidateBean);
+                    */
+                    
+                    //String pubKey = Base64.getEncoder().encodeToString(keys.getPubKey().getEncoded());
+                    
+                    byte[] encryptedName = SecurityUtils.encrypt(electorName.getBytes(), keys.getPubKey());
+                    String encryptedNameText = Base64.getEncoder().encodeToString(encryptedName);
+                            
+                    VoteBean vote = new VoteBean(encryptedNameText, candidateName);
                     vote.sign(keys.getPrivKey());
                     remote.addVote(vote.toText());
                 } catch (Exception ex) {

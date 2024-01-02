@@ -28,12 +28,14 @@ import beans.election.ElectionBean;
 import beans.election.ElectionManager;
 import beans.elector.ElectorBean;
 import beans.elector.Electors;
+import beans.votes.VoteBean;
 import java.net.InetAddress;
 import java.rmi.RemoteException;
 import java.rmi.server.RemoteServer;
 import java.rmi.server.ServerNotActiveException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -54,6 +56,9 @@ public class RemoteObject extends UnicastRemoteObject implements RemoteInterface
     Candidates candidates;
     Electors electors;
     ElectionManager election;
+    
+    boolean hasElectionEnded;
+    String electionResult;
     
     public Block miningBlock; // block in mining process
     public BlockChain blockchain;
@@ -90,6 +95,9 @@ public class RemoteObject extends UnicastRemoteObject implements RemoteInterface
             electors = new Electors();
             //inicializar eleição
             election = new ElectionManager(candidates, electors);
+            
+            hasElectionEnded = false;
+            electionResult = "";
             
             listener.onStartServer(utils.RMI.getRemoteName(port, RemoteInterface.OBJECT_NAME));
         } catch (Exception e) {
@@ -560,6 +568,83 @@ public class RemoteObject extends UnicastRemoteObject implements RemoteInterface
     @Override
     public ElectionManager getElection() throws RemoteException {
         return election;
+    }
+
+    @Override
+    public void endElection() throws RemoteException {
+        if(this.hasElectionEnded){
+            listener.onMessage("Election has finished", "");
+            return;
+        }
+        
+        this.hasElectionEnded = true;
+
+        listener.onMessage("endingElection", getClientName());
+        
+        for(RemoteInterface node : network){
+            node.synchonizeElectionState();
+        }
+    }
+
+    @Override
+    public boolean getElectionState() throws RemoteException {
+        return this.hasElectionEnded;
+    }
+
+    @Override
+    public void synchonizeElectionState() throws RemoteException {
+        if(this.hasElectionEnded){
+            listener.onMessage("Election has finished", "");
+            return;
+        }
+           
+        endElection();
+  
+        //mandar sincronizar a rede
+        for (RemoteInterface node : network) {
+            node.synchonizeElectionState();
+        }
+        
+        listener.onMessage("synchonizeElectionState", getClientName());
+    }
+
+    @Override
+    public void setElectionResult(String electionResult) throws RemoteException {
+            if(this.electionResult.equals(electionResult)){
+                listener.onMessage("Result updated", "");
+                return;
+            }
+
+            this.electionResult = electionResult;
+            
+            listener.onUpdateElection();
+            listener.onMessage("updatingResults", getClientName());
+        
+            for(RemoteInterface node : network){
+                node.synchonizeElectionResult(electionResult);
+            }
+    }
+
+    @Override
+    public String getElectionResult() throws RemoteException {
+        return this.electionResult;
+    }
+
+    @Override
+    public void synchonizeElectionResult(String electionResult) throws RemoteException {
+        if(this.electionResult.equals(electionResult)){
+            listener.onMessage("Result are ok", "");
+            return;
+        }
+           
+        setElectionResult(electionResult);
+  
+        //mandar sincronizar a rede
+        for (RemoteInterface node : network) {
+            node.synchonizeElectionResult(electionResult);
+        }
+        
+        listener.onMessage("synchonizeElectionResult", getClientName());
     }
 
 

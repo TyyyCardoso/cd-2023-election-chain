@@ -704,7 +704,6 @@ public class GUIConfig extends javax.swing.JFrame {
         // TODO add your handling code here:
         
         try{
-       
             List<Block> blockchain = remote.getBlockchain().getChain();
             List<CandidateBean> candidateList = candidates.getList();
             Map<String, Integer> contagemVotos = new HashMap<>();
@@ -728,13 +727,18 @@ public class GUIConfig extends javax.swing.JFrame {
                     contagemVotos.put(vote.getTo(), currentVotes);
                 }
             }
-            System.out.println("------------------------------------------------------------------------------------------\n");
+            
+            StringBuilder sb = new StringBuilder();
+            sb.append("------------------------------------------------------------------------------------------\n");
             for(CandidateBean bean : candidateList){
-                 System.out.println("\nCandidato: " + bean.getName());
-                 System.out.println("Votos: " + contagemVotos.get(bean.getName()));
-                 System.out.println("---------------------------------------\n");
+                 sb.append("\nCandidato: " + bean.getName());
+                 sb.append(" Votos: " + contagemVotos.get(bean.getName())+"\n");
             }
-            System.out.println("------------------------------------------------------------------------------------------\n");
+            sb.append("------------------------------------------------------------------------------------------\n");
+            
+             
+            remote.endElection();
+            remote.setElectionResult(sb.toString());
             
         }catch(Exception e){
             System.out.println("Erro a contar votos" + e);
